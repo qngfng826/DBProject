@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="movie_rating_backend.mapper.MovieMapper">
+    <!-- 定义 Director 和 Actor 的映射 -->
+    <resultMap id="MovieDetailMap" type="movie_rating_backend.entity.Movie">
+        <id column="MovieID" property="movieId"/>
+        <result column="Title" property="title"/>
+        <result column="ReleaseYear" property="releaseYear"/>
+        <result column="Duration" property="duration"/>
+        <result column="Genre" property="genre"/>
+        <result column="Language" property="language"/>
+        <result column="Country" property="country"/>
+        <result column="Synopsis" property="synopsis"/>
+        <result column="Rating" property="rating"/>
+        <result column="PosterUrl" property="posterUrl"/>
+
+        <!-- 映射导演集合 -->
+        <collection property="directors" ofType="movie_rating_backend.entity.Director">
+            <id column="DirectorID" property="directorId"/>
+            <result column="DName" property="name"/>
+            <result column="DGender" property="gender"/>
+            <result column="DBirthDate" property="birthDate"/>
+            <result column="DNationality" property="nationality"/>
+        </collection>
+
+        <!-- 映射演员集合 -->
+        <collection property="actors" ofType="movie_rating_backend.entity.Actor">
+            <id column="ActorID" property="actorId"/>
+            <result column="AName" property="name"/>
+            <result column="AGender" property="gender"/>
+            <result column="ABirthDate" property="birthDate"/>
+            <result column="ANationality" property="nationality"/>
+        </collection>
+    </resultMap>
+
+    <!-- 确认 id="selectOneById" 与 Mapper接口方法名一致 -->
+    <select id="selectOneById" resultMap="MovieDetailMap">
+        SELECT
+        m.*,
+        d.DirectorID, d.Name AS DName, d.Gender AS DGender, d.BirthDate AS DBirthDate, d.Nationality AS DNationality,
+        a.ActorID, a.Name AS AName, a.Gender AS AGender, a.BirthDate AS ABirthDate, a.Nationality AS ANationality
+        FROM movie1707 m
+        LEFT JOIN movie_director1707 md ON m.MovieID = md.MovieID
+        LEFT JOIN director1707 d ON md.DirectorID = d.DirectorID
+        LEFT JOIN movie_actor1707 ma ON m.MovieID = ma.MovieID
+        LEFT JOIN actor1707 a ON ma.ActorID = a.ActorID
+        WHERE m.MovieID = #{id}
+    </select>
+</mapper>

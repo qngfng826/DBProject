@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="movie_rating_backend.mapper.DirectorMapper">
+
+    <!-- 以导演名查询导演的所有作品 -->
+    <select id="searchMovies" parameterType="String" resultType="movie_rating_backend.entity.Movie">
+        SELECT m.*
+        FROM movie1707 m
+        JOIN movie_director1707 md ON m.MovieID = md.MovieID
+        JOIN director1707 d ON md.DirectorID = d.DirectorID
+        WHERE d.Name = #{name}
+        ORDER BY m.ReleaseYear DESC
+    </select>
+</mapper>
