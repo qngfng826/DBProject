@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="movie_rating_backend.mapper.ActorMapper">
+
+    <!-- 调用存储过程：按演员名查参演所有电影 -->
+    <select id="searchMovies" parameterType="string" statementType="CALLABLE"
+            resultType="movie_rating_backend.entity.Movie">
+        {call sp_query_movies_by_actor(#{name, mode=IN, jdbcType=VARCHAR})}
+    </select>
+</mapper>

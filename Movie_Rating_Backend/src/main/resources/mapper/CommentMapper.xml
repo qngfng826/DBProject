@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="movie_rating_backend.mapper.CommentMapper">
+
+    <!-- 调用存储过程：按电影名查评论 -->
+    <select id="findCommentsByMovieTitle" parameterType="string" statementType="CALLABLE"
+            resultType="map">
+        {call sp_query_comments_by_movie(#{title, mode=IN, jdbcType=VARCHAR})}
+    </select>
+
+    <!-- 查询某用户的所有评论（带电影标题） -->
+    <select id="getUserComments" resultType="movie_rating_backend.entity.MovieComment">
+        SELECT m.*, c.CommentID, c.UserID, c.Content, c.CommentTime
+        FROM comment1707 c
+        JOIN movie1707 m ON c.MovieID = m.MovieID
+        WHERE c.UserID = #{userId}
+        ORDER BY c.CommentTime DESC
+    </select>
+
+</mapper>
