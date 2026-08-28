@@ -21,27 +21,27 @@
       </div>
       <div v-loading="loading">
         <div v-if="hotMovies.length" class="movie-grid">
-          <div v-for="movie in hotMovies" :key="movie.MovieID" class="movie-card" @click="goDetail(movie.MovieID)">
+          <div v-for="movie in hotMovies" :key="movie.movieId" class="movie-card" @click="goDetail(movie.movieId)">
             <div class="poster-wrapper">
-              <img :src="movie.PosterUrl || defaultPoster" :alt="movie.Title" class="movie-poster" @error="handleImgError" />
+              <img :src="movie.posterUrl || defaultPoster" :alt="movie.title" class="movie-poster" loading="lazy" @error="handleImgError" />
               <div class="poster-overlay">
                 <el-icon :size="32"><View /></el-icon>
                 <span>查看详情</span>
               </div>
             </div>
-            <div class="movie-info">
-              <h3 class="movie-title">{{ movie.Title }}</h3>
-              <div class="movie-meta">
-                <span class="rating-stars">
-                  <el-icon color="var(--accent)"><Star /></el-icon>
-                  <span class="score">{{ movie.Rating?.toFixed(1) }}</span>
-                </span>
-                <span class="comments-count">
-                  <el-icon><ChatDotRound /></el-icon>
-                  {{ movie.CommentCount || 0 }}
-                </span>
-              </div>
+          <div class="movie-info">
+            <h3 class="movie-title">{{ movie.title }}</h3>
+            <div class="movie-meta">
+              <span class="rating-stars">
+                <el-icon color="var(--accent)"><Star /></el-icon>
+                <span class="score">{{ movie.rating?.toFixed(1) || '0.0' }}</span>
+              </span>
+              <span class="comments-count">
+                <el-icon><ChatDotRound /></el-icon>
+                {{ movie.CommentCount || 0 }}
+              </span>
             </div>
+          </div>
           </div>
         </div>
         <div v-else class="empty-state">
@@ -70,6 +70,11 @@ function handleImgError(e) {
 }
 
 function goDetail(id) {
+  if (!id) {
+    console.error('Movie ID is empty, cannot navigate')
+    return
+  }
+  console.log('Navigating to movie detail:', `/movie/${id}`)
   router.push(`/movie/${id}`)
 }
 
@@ -89,16 +94,18 @@ async function fetchHotMovies() {
     } else if (res.data && Array.isArray(res.data.list)) {
       list = res.data.list
     }
+    console.log('Hot movies data:', list)
     hotMovies.value = list.map(m => ({
       ...m,
-      MovieID: m.MovieID || m.movieId,
-      Title: m.Title || m.title,
-      Rating: m.Rating || m.rating,
-      PosterUrl: m.PosterUrl || m.posterUrl,
-      CommentCount: m.CommentCount || m.commentCount || 0
+      movieId: m.movieId,
+      title: m.title || '未知电影',
+      rating: m.rating || 0,
+      posterUrl: m.posterUrl || '',
+      CommentCount: m.CommentCount || 0
     }))
+    console.log('Mapped movies:', hotMovies.value)
   } catch (e) {
-    // error handled
+    console.error('Error fetching hot movies:', e)
   } finally {
     loading.value = false
   }

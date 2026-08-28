@@ -51,18 +51,22 @@ const validateConfirm = (rule, value, callback) => {
 
 const rules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, message: '用户名至少3位', trigger: 'blur' }
+    { required: true, message: '请输入用户名', trigger: ['blur', 'change'] },
+    { min: 3, max: 20, message: '用户名长度为3-20个字符', trigger: ['blur', 'change'] },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线', trigger: ['blur', 'change'] }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
+    { required: true, message: '请输入密码', trigger: ['blur', 'change'] },
+    { min: 6, max: 20, message: '密码长度为6-20个字符', trigger: ['blur', 'change'] },
+    { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: '密码需包含大小写字母和数字', trigger: ['blur', 'change'] }
   ],
   confirmPassword: [
-    { required: true, message: '请确认密码', trigger: 'blur' },
-    { validator: validateConfirm, trigger: 'blur' }
+    { required: true, message: '请确认密码', trigger: ['blur', 'change'] },
+    { validator: validateConfirm, trigger: ['blur', 'change'] }
   ],
-  email: [{ type: 'email', message: '邮箱格式不正确', trigger: 'blur' }]
+  email: [
+    { type: 'email', message: '邮箱格式不正确', trigger: ['blur', 'change'] }
+  ]
 }
 
 async function handleRegister() {

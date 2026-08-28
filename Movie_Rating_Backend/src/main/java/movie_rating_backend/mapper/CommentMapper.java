@@ -12,5 +12,6 @@ import java.util.Map;
 public interface CommentMapper extends BaseMapper<Comment> {
     List<Map<String, Object>> findCommentsByMovieTitle(@Param("title") String title);
     List<MovieComment> getUserComments(@Param("userId") Integer userId);
+    List<Comment> getMovieCommentsWithUsername(@Param("movieId") Integer movieId);
 }
 

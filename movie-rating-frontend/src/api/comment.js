@@ -12,6 +12,10 @@ export function deleteComment(id) {
   return request.delete(`/comment/${id}`)
 }
 
+export function getMovieComments(movieId) {
+  return request.get(`/comment/movie/${movieId}`)
+}
+
 export function getUserComments() {
-  return request.get(`/comment/user`)
+  return request.get('/comment/user')
 }

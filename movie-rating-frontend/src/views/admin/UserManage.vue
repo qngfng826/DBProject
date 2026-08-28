@@ -1,26 +1,20 @@
 <template>
-  <!-- 模板部分省略，结构同上，只需移除 el-table 的 stripe 属性 -->
   <div class="page-container">
-    <div class="section-title"><el-icon><DataAnalysis /></el-icon>演员管理</div>
+    <div class="section-title"><el-icon><UserFilled /></el-icon>用户管理</div>
 
     <div class="admin-card toolbar-card">
-      <el-input v-model="keyword" placeholder="搜索演员姓名" clearable :prefix-icon="Search" style="width: 300px" @keyup.enter="handleSearch" @clear="handleSearch" />
-      <el-button type="primary" @click="openDialog(null)" :icon="Plus">新增演员</el-button>
+      <el-input v-model="keyword" placeholder="搜索用户名或邮箱" clearable :prefix-icon="Search" style="width: 300px" @keyup.enter="handleSearch" @clear="handleSearch" />
     </div>
 
-    <!-- 移除了 stripe 属性 -->
     <div class="admin-card table-card">
       <el-table :data="list" v-loading="loading" style="width: 100%" :header-cell-style="{background:'#30363d', color:'#c9d1d9'}">
-        <el-table-column prop="actorId" label="ID" width="60" sortable />
-        <el-table-column prop="name" label="姓名" min-width="120" />
-        <el-table-column prop="gender" label="性别" width="80">
-          <template #default="{ row }">
-            <el-tag effect="plain" :type="row.gender === '男' ? 'primary' : 'danger'">{{ row.gender }}</el-tag>
-          </template>
+        <el-table-column prop="userId" label="ID" width="60" sortable />
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column prop="email" label="邮箱" min-width="180" />
+        <el-table-column prop="registerTime" label="注册时间" width="180" sortable>
+          <template #default="{ row }">{{ formatTime(row.registerTime) }}</template>
         </el-table-column>
-        <el-table-column prop="birthDate" label="出生日期" width="120" sortable />
-        <el-table-column prop="nationality" label="国籍" width="100" />
-        
+
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button text size="small" type="primary" :icon="Edit" @click="openDialog(row)">编辑</el-button>
@@ -34,36 +28,18 @@
       <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="currentPage" @current-change="handlePageChange" />
     </div>
 
-    <!-- Dialog 部分省略，保持不变 -->
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑演员' : '新增演员'" width="500px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" title="编辑用户" width="500px" destroy-on-close>
       <el-form :model="form" label-width="100px" class="custom-form">
-        <el-form-item label="姓名">
-          <el-input v-model="form.name" placeholder="演员姓名" />
-        </el-form-item>
-        
-        <el-form-item label="性别">
-          <el-radio-group v-model="form.gender" size="default">
-            <el-radio value="男"><el-icon><Male /></el-icon> 男</el-radio>
-            <el-radio value="女"><el-icon><Female /></el-icon> 女</el-radio>
-          </el-radio-group>
+        <el-form-item label="用户名">
+          <el-input v-model="form.username" placeholder="用户名" />
         </el-form-item>
 
-        <el-form-item label="出生日期">
-          <el-date-picker 
-            v-model="form.birthDate" 
-            type="date" 
-            placeholder="选择日期" 
-            value-format="YYYY-MM-DD" 
-            style="width: 100%"
-          />
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" placeholder="邮箱" />
         </el-form-item>
-        
-        <el-form-item label="国籍">
-          <el-input v-model="form.nationality" placeholder="如：中国" />
-        </el-form-item>
-        
-        <el-form-item label="照片链接">
-          <el-input v-model="form.photoUrl" placeholder="粘贴头像链接" />
+
+        <el-form-item label="重置密码">
+          <el-input v-model="form.password" type="password" show-password placeholder="留空则不修改密码" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -77,8 +53,11 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { DataAnalysis, Search, Plus, Edit, Delete, User } from '@element-plus/icons-vue'
-import { getActorList, addActor, updateActor, deleteActor } from '@/api/actor'
+import { UserFilled, Search, Edit, Delete } from '@element-plus/icons-vue'
+import { getUserList, updateUser, deleteUser } from '@/api/user'
+import { useUserStore } from '@/stores/user'
+
+const userStore = useUserStore()
 
 const list = ref([])
 const loading = ref(false)
@@ -91,19 +70,32 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-const defaultForm = { actorId: null, name: '', gender: '男', birthDate: '', nationality: '', photoUrl: '' }
+const defaultForm = { userId: null, username: '', email: '', password: '' }
 const form = reactive({ ...defaultForm })
+
+function formatTime(t) {
+  if (!t) return '-'
+  const d = typeof t === 'number' ? new Date(t) : new Date(t)
+  if (isNaN(d.getTime())) return t
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function isProtected(row) {
+  // 不允许删除 admin 账号和当前登录账号
+  return row.username === 'admin' || row.userId === userStore.userInfo?.userId
+}
 
 async function fetchData() {
   loading.value = true
   try {
-    const res = await getActorList({ page: currentPage.value, size: pageSize.value, keyword: keyword.value })
+    const res = await getUserList({ page: currentPage.value, size: pageSize.value, keyword: keyword.value })
     list.value = res.data?.records || res.data || []
     total.value = res.data?.total || 0
-  } catch (e) { 
+  } catch (e) {
     console.error("接口报错:", e);
     ElMessage.error('操作失败，请查看控制台');
-    list.value = []; 
+    list.value = [];
     total.value = 0 } finally { loading.value = false }
 }
 
@@ -112,15 +104,15 @@ function handlePageChange(val) { currentPage.value = val; fetchData() }
 
 function openDialog(row) {
   editing.value = !!row
-  Object.assign(form, row || defaultForm)
+  Object.assign(form, defaultForm, row ? { userId: row.userId, username: row.username, email: row.email, password: '' } : {})
   dialogVisible.value = true
 }
 
 async function save() {
   saving.value = true
   try {
-    if (editing.value) { await updateActor(form.actorId, form); ElMessage.success('更新成功') }
-    else { await addActor(form); ElMessage.success('添加成功') }
+    await updateUser(form.userId, form)
+    ElMessage.success('更新成功')
     dialogVisible.value = false; fetchData()
   } catch (e) {
     console.error("接口报错:", e);
@@ -129,11 +121,16 @@ async function save() {
 }
 
 async function handleDelete(row) {
-  try { 
-    await ElMessageBox.confirm(`确定删除「${row.name}」?`, '提示', { type: 'warning' }); 
-    await deleteActor(row.actorId); ElMessage.success('已删除'); 
-    fetchData() 
+  if (isProtected(row)) {
+    ElMessage.warning('不能删除 admin 账号或当前登录账号')
+    return
+  }
+  try {
+    await ElMessageBox.confirm(`确定删除用户「${row.username}」?`, '提示', { type: 'warning' });
+    await deleteUser(row.userId); ElMessage.success('已删除');
+    fetchData()
   } catch (e) {
+    if (e === 'cancel' || e === 'close') return
     console.error("接口报错:", e);
     ElMessage.error('操作失败，请查看控制台');
   }
@@ -168,34 +165,28 @@ onMounted(() => fetchData())
 
 :deep(.el-table::before) { background-color: transparent; }
 
-.image-slot { width: 50px; height: 50px; background: #30363d; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #8b949e; }
 /* --- 分页组件样式增强 --- */
-
-/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
 .pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary); /* 使用次级背景色 */
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color); /* 添加边框 */
+  border: 1px solid var(--border-color);
   font-weight: 500;
-  border-radius: 4px; /* 圆角 */
+  border-radius: 4px;
 }
 
-/* 2. 鼠标悬停：显示主题色边框 */
 .pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
   color: var(--accent);
   border-color: var(--accent);
 }
 
-/* 3. 当前页（激活状态）：最明显的颜色 */
 .pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important; /* 强制背景为主题色 */
-  color: #fff !important; /* 文字改为白色，对比度高 */
-  font-weight: bold; /* 加粗 */
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  font-weight: bold;
   border-color: var(--accent);
   cursor: default;
 }
 
-/* 4. 上一页/下一页按钮样式 */
 .pagination-wrapper :deep(.el-pagination button) {
   background-color: var(--bg-secondary);
   color: var(--text-primary);

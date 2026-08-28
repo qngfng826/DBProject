@@ -98,6 +98,9 @@ import { getGenreSummary } from '@/api/movie'
 //  按需引入，减小体积并避免全量引入的潜在冲突
 echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, CanvasRenderer])
 
+// 与电影列表保持一致的电影类型列表
+const movieGenres = ['剧情', '喜剧', '动作', '爱情', '科幻', '动画', '悬疑', '犯罪', '奇幻']
+
 const tableData = ref([])
 // 新增：全局统计数据
 const globalStats = ref(null)
@@ -131,8 +134,9 @@ const safeInitChart = (domRef, option) => {
 const renderCharts = () => {
   if (tableData.value.length === 0) return
 
+  // 从tableData动态提取genres，确保与后端返回的数据一致
   const genres = tableData.value.map(d => d.Genre)
-  
+
   // 柱状图配置
   const barOption = {
     tooltip: { trigger: 'axis' },
@@ -204,14 +208,15 @@ async function fetchReport() {
         globalStats.value = res.data.globalStats
     }
 
-    tableData.value = list.map(d => (({
-      Genre: d.genre ?? d.Genre ?? '未知类型',
-      Count: Number(d.count ?? d.Count) || 0,
-      AvgRating: Number(d.avg_rating ?? d.avgRating ?? d.AvgRating) || 0,
-      MaxRating: Number(d.max_rating ?? d.maxRating ?? d.MaxRating) || 0,
-      MinRating: Number(d.min_rating ?? d.minRating ?? d.MinRating) || 0,
-      TotalComments: Number(d.total_comments ?? d.totalComments ?? d.TotalComments) || 0
-    })))
+    // 后端使用IN精确匹配，直接映射数据（避免复合类型重复统计）
+    tableData.value = list.map(d => ({
+      Genre: d.Genre,
+      Count: Number(d.Count) || 0,
+      AvgRating: Number(d.AvgRating) || 0,
+      MaxRating: Number(d.MaxRating) || 0,
+      MinRating: Number(d.MinRating) || 0,
+      TotalComments: Number(d.TotalComments) || 0
+    })).filter(item => item.Count > 0) // 过滤掉数量为0的类型
 
     //  双重等待，确保 DOM 完全渲染且有尺寸
     await nextTick()

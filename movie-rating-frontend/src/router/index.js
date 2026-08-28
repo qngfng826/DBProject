@@ -19,7 +19,7 @@ const routes = [
     children: [
       { path: '', component: () => import('@/views/Home.vue') },
       { path: 'movies', component: () => import('@/views/MovieList.vue') },
-      { path: 'movie/:id', component: () => import('@/views/MovieDetail.vue') },
+      { path: 'movie/:id', component: () => import('@/views/MovieDetail.vue'), meta: { public: true } },
       { path: 'actors', component: () => import('@/views/ActorList.vue') },
       { path: 'actor/:id', component: () => import('@/views/ActorDetail.vue') },
       { path: 'directors', component: () => import('@/views/DirectorList.vue') },
@@ -37,7 +37,8 @@ const routes = [
     children: [
       { path: 'movie', component: () => import('@/views/admin/MovieManage.vue') },
       { path: 'actor', component: () => import('@/views/admin/ActorManage.vue') },
-      { path: 'director', component: () => import('@/views/admin/DirectorManage.vue') }
+      { path: 'director', component: () => import('@/views/admin/DirectorManage.vue') },
+      { path: 'user', component: () => import('@/views/admin/UserManage.vue') }
     ]
   }
 ]

@@ -8,12 +8,14 @@ import movie_rating_backend.mapper.UserMapper;
 import movie_rating_backend.service.UserService;
 import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.Result;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
      * 登录校验逻辑
@@ -29,8 +31,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.error("用户名或密码错误");
         }
 
-        // 3. 校验密码（重点：数据库存的是明文，直接用 equals 比较）
-        if (!loginDTO.getPassword().equals(user.getPassword())) {
+        // 3. 校验密码（使用 BCrypt 验证密码）
+        if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
             return Result.error("用户名或密码错误"); // 密码不匹配，返回错误
         }
 

@@ -17,7 +17,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     @Override
     public List<Comment> getCommentsByMovieId(Integer movieId) {
-        return list(new QueryWrapper<Comment>().eq("movieid", movieId));
+        return list(new QueryWrapper<Comment>().eq("MovieID", movieId));
     }
 
     @Override

@@ -89,6 +89,7 @@
           <el-col :span="12"><el-form-item label="语言"><el-input v-model="form.language" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="国家"><el-input v-model="form.country" /></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="海报链接"><el-input v-model="form.posterUrl" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="外部链接"><el-input v-model="form.jumpUrl" placeholder="点击电影标题跳转的URL（选填）" clearable /></el-form-item></el-col>
           <el-col :span="24">
             <el-form-item label="导演">
               <el-select v-model="form.directorIds" multiple placeholder="请选择导演" style="width: 100%">
@@ -123,7 +124,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { DataAnalysis, Search, Plus, Edit, Delete, Picture } from '@element-plus/icons-vue'
-import { searchMovies, addMovie, updateMovie, deleteMovie } from '@/api/movie'
+import { searchMovies, addMovie, updateMovie, deleteMovie, getMovieDetail } from '@/api/movie'
 import { getActorList } from '@/api/actor'
 import { getDirectorList } from '@/api/director'
 
@@ -142,9 +143,9 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-const defaultForm = { 
-  movieId: null, title: '', releaseYear: null, duration: null, genre: '', 
-  language: '', country: '', synopsis: '', posterUrl: '',
+const defaultForm = {
+  movieId: null, title: '', releaseYear: null, duration: null, genre: '',
+  language: '', country: '', synopsis: '', posterUrl: '', jumpUrl: '',
   directorIds: [], actors: [], directors: []
 }
 const form = reactive({ ...defaultForm })
@@ -186,13 +187,26 @@ function handleSearch() {
 function handleSizeChange(val) { pageSize.value = val; fetchData() }
 function handlePageChange(val) { currentPage.value = val; fetchData() }
 
-function openDialog(row) {
+async function openDialog(row) {
   editing.value = !!row
-  Object.assign(form, defaultForm, row ? {
-    ...row,
-    directorIds: row.directors ? row.directors.map(d => d.directorId) : []
-  } : {})
-  if (!form.actors) form.actors = []
+  if (row) {
+    // 列表接口不返回关联的导演/演员，需请求详情接口回显
+    try {
+      const res = await getMovieDetail(row.movieId)
+      const detail = res.data || {}
+      Object.assign(form, defaultForm, detail, {
+        directorIds: (detail.directors || []).map(d => d.directorId),
+        actors: (detail.actors || []).map(a => ({ actorId: a.actorId, roleName: a.roleName || '' }))
+      })
+    } catch (e) {
+      console.error('获取电影详情失败:', e)
+      Object.assign(form, defaultForm, row, { directorIds: [], actors: [] })
+    }
+  } else {
+    // 数组字段必须赋新数组：Object.assign 是浅拷贝，
+    // 直接拷贝 defaultForm 的引用会被 push/splice 污染，导致下次打开仍残留
+    Object.assign(form, defaultForm, { directorIds: [], actors: [], directors: [] })
+  }
   dialogVisible.value = true
 }
 

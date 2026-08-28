@@ -23,10 +23,14 @@ public class Movie {
     private String synopsis;
     private BigDecimal rating;
     private String posterUrl;
+    private String jumpUrl;
 
     @TableField(exist = false)
     private List<Director> directors;
 
     @TableField(exist = false)
     private List<Actor> actors;
+
+    @TableField(exist = false)
+    private BigDecimal userRating;
 }

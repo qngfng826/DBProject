@@ -17,8 +17,8 @@
         <el-option label="年份从新到旧" value="year_desc" />
         <el-option label="年份从旧到新" value="year_asc" />
       </el-select>
-      <el-button type="primary" @click="handleSearch">查询</el-button>
-      <el-button @click="resetFilters">重置</el-button>
+      <el-button type="primary" :loading="loading" @click="handleSearch">查询</el-button>
+      <el-button @click="resetFilters" :disabled="loading">重置</el-button>
     </div>
 
     <!-- 电影列表 -->
@@ -26,7 +26,7 @@
       <div v-if="movies.length" class="movie-grid">
         <div v-for="movie in movies" :key="movie.movieId" class="movie-card" @click="goDetail(movie.movieId)">
           <div class="poster-wrapper">
-            <img :src="movie.PosterUrl || defaultPoster" :alt="movie.Title" class="movie-poster" @error="handleImgError" />
+            <img :src="movie.PosterUrl || defaultPoster" :alt="movie.Title" class="movie-poster" loading="lazy" @error="handleImgError" />
             <div class="poster-overlay">
               <el-icon :size="32"><View /></el-icon>
               <span>查看详情</span>
@@ -60,7 +60,12 @@
       </div>
       <div v-else class="empty-state">
         <el-icon><Film /></el-icon>
-        <p>暂无符合条件的电影</p>
+        <p v-if="hasSearchCondition">暂无符合条件的电影，请尝试其他搜索条件</p>
+        <p v-else>暂无电影数据</p>
+        <div v-if="hasSearchCondition" class="empty-actions">
+          <el-button type="primary" @click="resetFilters">清除筛选条件</el-button>
+          <el-button @click="$router.push('/')">浏览热门推荐</el-button>
+        </div>
       </div>
     </div>
      
@@ -68,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Search, Star, View, Film } from '@element-plus/icons-vue'
 import { searchMovies } from '@/api/movie'
@@ -88,6 +93,11 @@ const filters = reactive({
   genre: '',
   year: '',
   sort: 'rating_desc'
+})
+
+// 计算是否有搜索条件
+const hasSearchCondition = computed(() => {
+  return filters.keyword || filters.genre || filters.year
 })
 
 // 新增：分页状态

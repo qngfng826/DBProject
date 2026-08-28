@@ -13,6 +13,8 @@
         <result column="Synopsis" property="synopsis"/>
         <result column="Rating" property="rating"/>
         <result column="PosterUrl" property="posterUrl"/>
+        <result column="JumpUrl" property="jumpUrl"/>
+        <result column="UserRating" property="userRating"/>
 
         <!-- 映射导演集合 -->
         <collection property="directors" ofType="movie_rating_backend.entity.Director">
@@ -30,20 +32,61 @@
             <result column="AGender" property="gender"/>
             <result column="ABirthDate" property="birthDate"/>
             <result column="ANationality" property="nationality"/>
+            <result column="RoleName" property="roleName"/>
         </collection>
     </resultMap>
 
     <!-- 确认 id="selectOneById" 与 Mapper接口方法名一致 -->
     <select id="selectOneById" resultMap="MovieDetailMap">
         SELECT
-        m.*,
+        m.MovieID,
+        m.Title,
+        m.ReleaseYear,
+        m.Duration,
+        m.Genre,
+        m.Language,
+        m.Country,
+        m.Synopsis,
+        (SELECT AVG(r.Score) FROM rating1707 r WHERE r.MovieID = m.MovieID) AS Rating,
+        m.PosterUrl,
+        m.JumpUrl,
+        COUNT(c.CommentID) AS CommentCount,
+        <!-- 获取当前用户的评分 -->
+        (SELECT r.Score FROM rating1707 r WHERE r.MovieID = m.MovieID AND r.UserID = #{userId}) AS UserRating,
         d.DirectorID, d.Name AS DName, d.Gender AS DGender, d.BirthDate AS DBirthDate, d.Nationality AS DNationality,
-        a.ActorID, a.Name AS AName, a.Gender AS AGender, a.BirthDate AS ABirthDate, a.Nationality AS ANationality
+        a.ActorID, a.Name AS AName, a.Gender AS AGender, a.BirthDate AS ABirthDate, a.Nationality AS ANationality, ma.RoleName
         FROM movie1707 m
         LEFT JOIN movie_director1707 md ON m.MovieID = md.MovieID
         LEFT JOIN director1707 d ON md.DirectorID = d.DirectorID
         LEFT JOIN movie_actor1707 ma ON m.MovieID = ma.MovieID
         LEFT JOIN actor1707 a ON ma.ActorID = a.ActorID
+        LEFT JOIN comment1707 c ON m.MovieID = c.MovieID
         WHERE m.MovieID = #{id}
+        GROUP BY m.MovieID, d.DirectorID, d.Name, d.Gender, d.BirthDate, d.Nationality,
+                 a.ActorID, a.Name, a.Gender, a.BirthDate, a.Nationality, ma.RoleName
+    </select>
+
+    <!-- 热门电影查询（优化后）- 按平均评分排序，包含评论数量 -->
+    <select id="getHotMovies" resultType="java.util.Map">
+        SELECT
+            m.MovieID AS movieId,
+            m.Title AS title,
+            m.ReleaseYear AS releaseYear,
+            m.Duration AS duration,
+            m.Genre AS genre,
+            m.Language AS language,
+            m.Country AS country,
+            m.Synopsis AS synopsis,
+            (SELECT AVG(r.Score) FROM rating1707 r WHERE r.MovieID = m.MovieID) AS rating,
+            m.PosterUrl AS posterUrl,
+            m.JumpUrl AS jumpUrl,
+            COUNT(c.CommentID) AS CommentCount
+        FROM movie1707 m
+        LEFT JOIN comment1707 c ON m.MovieID = c.MovieID
+        WHERE m.MovieID IS NOT NULL
+        GROUP BY m.MovieID, m.Title, m.ReleaseYear, m.Duration, m.Genre,
+                 m.Language, m.Country, m.Synopsis, m.PosterUrl
+        ORDER BY rating DESC, CommentCount DESC
+        LIMIT 10
     </select>
 </mapper>

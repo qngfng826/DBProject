@@ -1,0 +1,82 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< com.mrs:movie-rating-backend >--------------------
+[INFO] Building movie-rating-backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:2.7.18:run (default-cli) > test-compile @ movie-rating-backend >>>
+[WARNING] The artifact mysql:mysql-connector-java:jar:8.0.33 has been relocated to com.mysql:mysql-connector-j:jar:8.0.33: MySQL Connector/J artifacts moved to reverse-DNS compliant Maven 2+ coordinates.
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ movie-rating-backend ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 2 resources
+[INFO] Copying 6 resources
+[INFO] 
+[INFO] --- compiler:3.10.1:compile (default-compile) @ movie-rating-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.2.0:testResources (default-testResources) @ movie-rating-backend ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] skip non existing resourceDirectory D:\Project\DatabaseProject\Movie_Rating_Backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.10.1:testCompile (default-testCompile) @ movie-rating-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:2.7.18:run (default-cli) < test-compile @ movie-rating-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:2.7.18:run (default-cli) @ movie-rating-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v2.7.18)
+
+2026-08-27 21:01:27.100  INFO 22592 --- [           main] m.MovieRatingSystemApplication           : Starting MovieRatingSystemApplication using Java 21.0.6 on yellow-snake with PID 22592 (D:\Project\DatabaseProject\Movie_Rating_Backend\target\classes started by 18512 in D:\Project\DatabaseProject\Movie_Rating_Backend)
+2026-08-27 21:01:27.101  INFO 22592 --- [           main] m.MovieRatingSystemApplication           : No active profile set, falling back to 1 default profile: "default"
+2026-08-27 21:01:27.788  INFO 22592 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8088 (http)
+2026-08-27 21:01:27.794  INFO 22592 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-27 21:01:27.794  INFO 22592 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.83]
+2026-08-27 21:01:27.858  INFO 22592 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-08-27 21:01:27.858  INFO 22592 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 724 ms
+2026-08-27 21:01:28.140  WARN 22592 --- [           main] c.b.m.core.metadata.TableInfoHelper      : Can not find table primary key in Class: "movie_rating_backend.entity.User".
+2026-08-27 21:01:28.140  WARN 22592 --- [           main] c.b.m.core.injector.DefaultSqlInjector   : class movie_rating_backend.entity.User ,Not found @TableId annotation, Cannot use Mybatis-Plus 'xxById' Method.
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.3.1 
+2026-08-27 21:01:28.266  WARN 22592 --- [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 3089c43d-e4fb-432c-8b43-a6ebdb86d75d
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-08-27 21:01:28.309  INFO 22592 --- [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7bbcf6f0, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@2b80e5a9, org.springframework.security.web.context.SecurityContextPersistenceFilter@2d7637e6, org.springframework.security.web.header.HeaderWriterFilter@4e8b357d, org.springframework.security.web.authentication.logout.LogoutFilter@4877919f, movie_rating_backend.filter.JwtAuthenticationFilter@26d41711, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@39b626e5, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2b44d6d0, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4cc01c7f, org.springframework.security.web.session.SessionManagementFilter@48268eec, org.springframework.security.web.access.ExceptionTranslationFilter@5fdfe8cf, org.springframework.security.web.access.intercept.AuthorizationFilter@ea00de]
+2026-08-27 21:01:28.522  INFO 22592 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8088 (http) with context path ''
+2026-08-27 21:01:28.527  INFO 22592 --- [           main] m.MovieRatingSystemApplication           : Started MovieRatingSystemApplication in 1.675 seconds (JVM running for 1.894)
+2026-08-27 21:01:47.456  INFO 22592 --- [nio-8088-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-27 21:01:47.456  INFO 22592 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-27 21:01:47.457  INFO 22592 --- [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-08-27 21:01:47.476  INFO 22592 --- [nio-8088-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-27 21:01:47.565  INFO 22592 --- [nio-8088-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-27 22:36:27.360  WARN 22592 --- [nio-8088-exec-3] c.b.m.c.t.support.ReflectLambdaMeta      : Unable to make field private final java.lang.Class java.lang.invoke.SerializedLambda.capturingClass accessible: module java.base does not "opens java.lang.invoke" to unnamed module @ea1a8d5
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:56 h
+[INFO] Finished at: 2026-08-27T22:57:43+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:2.7.18:run (default-cli) on project movie-rating-backend: Application finished with exit code: 1073807364 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

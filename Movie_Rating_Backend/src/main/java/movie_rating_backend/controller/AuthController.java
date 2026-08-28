@@ -2,6 +2,7 @@ package movie_rating_backend.controller;
 
 import movie_rating_backend.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,8 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+    
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @PostMapping("/login")
     public Result<?> login(@RequestBody LoginDTO loginDTO) {
@@ -27,6 +30,8 @@ public class AuthController {
     public Map<String, Object> register(@RequestBody User user) {
         Map<String, Object> result = new HashMap<>();
         try {
+            // 加密密码
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userService.save(user);
             result.put("code", 200);
             result.put("msg", "注册成功");

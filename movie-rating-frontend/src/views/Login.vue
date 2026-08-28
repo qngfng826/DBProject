@@ -47,8 +47,11 @@ async function handleLogin() {
   loading.value = true
   try {
     await userStore.login(form)
-    ElMessage.success('登录成功')
-    router.push('/')
+    ElMessage.success({
+      message: '登录成功，正在跳转...',
+      duration: 2000,
+      onClose: () => router.push('/')
+    })
   } catch (e) {
     ElMessage.error(e.message || '登录失败') // 显示具体错误
   } finally {

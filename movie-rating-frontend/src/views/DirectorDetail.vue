@@ -41,6 +41,10 @@
         <div v-else class="empty-state">
           <el-icon><Film /></el-icon>
           <p>暂无执导电影数据</p>
+          <div class="empty-actions">
+            <el-button type="primary" @click="$router.push('/directors')">浏览所有导演</el-button>
+            <el-button @click="$router.push('/')">浏览热门电影</el-button>
+          </div>
         </div>
       </div>
     </div>

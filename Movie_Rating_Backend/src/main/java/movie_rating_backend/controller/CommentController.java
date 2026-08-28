@@ -2,6 +2,7 @@ package movie_rating_backend.controller;
 
 import movie_rating_backend.entity.Comment;
 import movie_rating_backend.entity.MovieComment;
+import movie_rating_backend.mapper.CommentMapper;
 import movie_rating_backend.utils.Result;
 import movie_rating_backend.service.CommentService;
 import movie_rating_backend.utils.JwtUtil;
@@ -19,6 +20,9 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private CommentMapper commentMapper;
 
     // 发表评论
     @PostMapping
@@ -92,9 +96,7 @@ public class CommentController {
     @GetMapping("/movie/{movieId}")
     public Result<List<Comment>> getMovieComments(@PathVariable("movieId") Integer movieId) {
         try {
-            // 假设你的 CommentService 中有 getCommentsByMovieId 方法
-            // 比如： List<Comment> list = commentService.getCommentsByMovieId(movieId);
-            List<Comment> list = commentService.getCommentsByMovieId(movieId); // 需要在 Service 中实现
+            List<Comment> list = commentMapper.getMovieCommentsWithUsername(movieId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error(500, e.getMessage());

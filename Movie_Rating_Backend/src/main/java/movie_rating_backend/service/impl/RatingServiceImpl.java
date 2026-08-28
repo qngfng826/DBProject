@@ -7,6 +7,7 @@ import movie_rating_backend.mapper.RatingMapper;
 import movie_rating_backend.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -14,6 +15,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 
 @Service
+@Transactional
 public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> implements RatingService {
 
     @Autowired
