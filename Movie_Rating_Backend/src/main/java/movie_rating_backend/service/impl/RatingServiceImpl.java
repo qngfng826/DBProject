@@ -25,10 +25,12 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
     public void rateMovie(Rating rating) {
         // 调用 RatingMapper.xml 中定义的 insertOrUpdate 方法
         ratingMapper.insertOrUpdate(rating);
+        recalcMovieRating(rating.getMovieId());
     }
     @Override
     public void updateRating(Rating rating) {
         ratingMapper.updateRating(rating);
+        recalcMovieRating(rating.getMovieId());
     }
 
     @Override
@@ -46,12 +48,24 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
 
     @Override
     public void removeRating(Integer ratingId) {
+        Rating rating = this.getById(ratingId);
         this.removeById(ratingId);
+        if (rating != null) {
+            recalcMovieRating(rating.getMovieId());
+        }
     }
     @Override
     public void removeByUserIdAndMovieId(Integer userId, Integer movieId) {
         this.remove(Wrappers.<Rating>lambdaQuery()
                 .eq(Rating::getUserId, userId)
                 .eq(Rating::getMovieId, movieId));
+        recalcMovieRating(movieId);
+    }
+
+    // 等价于原数据库触发器 trg_update_movie_rating_after_*：评分变化后重算电影平均分
+    private void recalcMovieRating(Integer movieId) {
+        if (movieId != null) {
+            ratingMapper.updateMovieRatingFromAvg(movieId);
+        }
     }
 }

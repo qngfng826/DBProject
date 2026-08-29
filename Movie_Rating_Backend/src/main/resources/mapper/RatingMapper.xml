@@ -9,6 +9,11 @@
     <update id="updateRating">
         UPDATE rating1707 SET Score = #{rating.score}, RatingTime = NOW() WHERE UserID = #{rating.userId} AND MovieID = #{rating.movieId}
     </update>
+    <update id="updateMovieRatingFromAvg">
+        UPDATE movie1707
+        SET Rating = (SELECT AVG(Score) FROM rating1707 WHERE MovieID = #{movieId})
+        WHERE MovieID = #{movieId}
+    </update>
     <select id="getUserMovieRating" resultType="movie_rating_backend.entity.Rating">
         SELECT movie1707.*, rating1707.Score, rating1707.RatingTime
         FROM rating1707

@@ -3,10 +3,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="movie_rating_backend.mapper.CommentMapper">
 
-    <!-- 调用存储过程：按电影名查评论 -->
-    <select id="findCommentsByMovieTitle" parameterType="string" statementType="CALLABLE"
+    <!-- 按电影名查评论（与存储过程 sp_query_comments_by_movie 等价，
+         改为普通 SQL 以兼容 TiDB——TiDB 不支持存储过程） -->
+    <select id="findCommentsByMovieTitle" parameterType="string"
             resultType="map">
-        {call sp_query_comments_by_movie(#{title, mode=IN, jdbcType=VARCHAR})}
+        SELECT c.CommentID, u.Username, c.Content, c.CommentTime
+        FROM comment1707 c
+        JOIN user1707 u ON c.UserID = u.UserID
+        JOIN movie1707 m ON c.MovieID = m.MovieID
+        WHERE m.Title = #{title}
+        ORDER BY c.CommentTime DESC
     </select>
 
     <!-- 查询某用户的所有评论（带电影标题） -->

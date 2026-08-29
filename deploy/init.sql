@@ -19,7 +19,7 @@
 -- Current Database: `movie_info1707`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `movie_info1707` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `movie_info1707` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
 
 USE `movie_info1707`;
 
@@ -39,7 +39,7 @@ CREATE TABLE `actor1707` (
   `PhotoUrl` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`ActorID`),
   CONSTRAINT `actor1707_chk_1` CHECK ((`Gender` in (_utf8mb4'男',_utf8mb4'女')))
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +70,7 @@ CREATE TABLE `comment1707` (
   KEY `MovieID` (`MovieID`),
   CONSTRAINT `comment1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`),
   CONSTRAINT `comment1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,7 +98,7 @@ CREATE TABLE `director1707` (
   `Nationality` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`DirectorID`),
   CONSTRAINT `director1707_chk_1` CHECK ((`Gender` in (_utf8mb4'男',_utf8mb4'女')))
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -134,7 +134,7 @@ CREATE TABLE `movie1707` (
   KEY `idx_movie_title` (`Title`),
   KEY `idx_movie_rating` (`Rating`),
   KEY `idx_movie_year` (`ReleaseYear`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,7 +162,7 @@ CREATE TABLE `movie_actor1707` (
   KEY `ActorID` (`ActorID`),
   CONSTRAINT `movie_actor1707_ibfk_1` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`) ON DELETE CASCADE,
   CONSTRAINT `movie_actor1707_ibfk_2` FOREIGN KEY (`ActorID`) REFERENCES `actor1707` (`ActorID`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -189,7 +189,7 @@ CREATE TABLE `movie_director1707` (
   KEY `DirectorID` (`DirectorID`),
   CONSTRAINT `movie_director1707_ibfk_1` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`) ON DELETE CASCADE,
   CONSTRAINT `movie_director1707_ibfk_2` FOREIGN KEY (`DirectorID`) REFERENCES `director1707` (`DirectorID`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -221,7 +221,7 @@ CREATE TABLE `rating1707` (
   CONSTRAINT `rating1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`),
   CONSTRAINT `rating1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`),
   CONSTRAINT `rating1707_chk_1` CHECK ((`Score` between 1 and 10))
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -233,63 +233,6 @@ LOCK TABLES `rating1707` WRITE;
 INSERT INTO `rating1707` VALUES (1,1,1,10,'2026-08-27 16:00:12'),(2,1,2,10,'2026-08-26 16:14:22'),(3,1,3,9,'2026-08-26 16:14:22'),(4,1,4,9,'2026-08-26 16:14:22'),(5,1,6,10,'2026-08-26 16:14:22'),(6,1,7,10,'2026-08-26 16:14:22'),(7,1,8,9,'2026-08-26 16:14:22'),(8,1,9,10,'2026-08-26 16:14:22'),(9,2,1,10,'2026-08-26 16:16:05'),(10,2,2,9,'2026-08-26 16:16:05'),(11,2,3,10,'2026-08-26 16:16:05'),(12,2,5,9,'2026-08-26 16:16:05'),(14,2,8,9,'2026-08-26 16:16:05'),(15,2,9,9,'2026-08-26 16:16:05'),(16,2,10,9,'2026-08-26 16:16:05'),(22,2,6,9,'2026-08-27 16:17:29'),(23,1,11,9,'2026-08-27 22:47:33'),(24,1,13,8,'2026-08-28 11:43:25'),(25,1,17,8,'2026-08-28 13:58:17'),(26,1,16,7,'2026-08-28 13:58:30');
 /*!40000 ALTER TABLE `rating1707` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_update_movie_rating_after_insert` AFTER INSERT ON `rating1707` FOR EACH ROW BEGIN
-    UPDATE movie1707 
-    SET Rating = (SELECT AVG(Score) FROM rating1707 WHERE MovieID = NEW.MovieID)
-    WHERE MovieID = NEW.MovieID;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_update_movie_rating_after_update` AFTER UPDATE ON `rating1707` FOR EACH ROW BEGIN
-    UPDATE movie1707 
-    SET Rating = (SELECT AVG(Score) FROM rating1707 WHERE MovieID = NEW.MovieID)
-    WHERE MovieID = NEW.MovieID;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_update_movie_rating_after_delete` AFTER DELETE ON `rating1707` FOR EACH ROW BEGIN
-    UPDATE movie1707 
-    SET Rating = (SELECT AVG(Score) FROM rating1707 WHERE MovieID = OLD.MovieID)
-    WHERE MovieID = OLD.MovieID;
-END */;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `user1707`
@@ -306,7 +249,7 @@ CREATE TABLE `user1707` (
   `RegisterTime` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`UserID`),
   UNIQUE KEY `Username` (`Username`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,57 +279,6 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
--- Dumping routines for database 'movie_info1707'
---
-/*!50003 DROP PROCEDURE IF EXISTS `sp_query_comments_by_movie` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_query_comments_by_movie`(IN p_title VARCHAR(100))
-BEGIN
-    SELECT c.CommentID, u.Username, c.Content, c.CommentTime
-    FROM comment1707 c
-    JOIN user1707 u ON c.UserID = u.UserID
-    JOIN movie1707 m ON c.MovieID = m.MovieID
-    WHERE m.Title = p_title
-    ORDER BY c.CommentTime DESC;
-END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 DROP PROCEDURE IF EXISTS `sp_query_movies_by_actor` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_query_movies_by_actor`(IN p_actor_name VARCHAR(50))
-BEGIN
-    SELECT m.*
-    FROM movie1707 m
-    JOIN movie_actor1707 ma ON m.MovieID = ma.MovieID
-    JOIN actor1707 a ON ma.ActorID = a.ActorID
-    WHERE a.Name = p_actor_name;
-END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-
---
 -- Current Database: `movie_info1707`
 --
 
@@ -402,7 +294,7 @@ USE `movie_info1707`;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 SET collation_connection      = utf8mb4_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `v_hot_movies` AS select `m`.`MovieID` AS `MovieID`,`m`.`Title` AS `Title`,`m`.`Rating` AS `Rating`,`m`.`PosterUrl` AS `PosterUrl`,(select count(0) from `comment1707` where (`comment1707`.`MovieID` = `m`.`MovieID`)) AS `CommentCount` from `movie1707` `m` where (`m`.`Rating` >= 8.0) order by (`m`.`Rating` * log((`CommentCount` + 1))) desc limit 10 */;
@@ -419,4 +311,4 @@ USE `movie_info1707`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-29 10:16:50
+-- Dump completed on 2026-08-29 12:41:56

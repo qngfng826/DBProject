@@ -21,6 +21,9 @@ public interface RatingMapper extends BaseMapper<Rating> {
 
     void updateRating(@Param("rating") Rating rating);
 
+    // 重算电影平均分写回 movie1707.Rating（原数据库触发器的职责，TiDB 不支持触发器，改由服务层调用）
+    void updateMovieRatingFromAvg(@Param("movieId") Integer movieId);
+
 //    void deleteRating(Integer userId, Integer movieId);
 //    delete操作使用MyBatis的delete方法
 }

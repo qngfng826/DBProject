@@ -3,9 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="movie_rating_backend.mapper.ActorMapper">
 
-    <!-- 调用存储过程：按演员名查参演所有电影 -->
-    <select id="searchMovies" parameterType="string" statementType="CALLABLE"
+    <!-- 按演员名查参演所有电影（与存储过程 sp_query_movies_by_actor 等价，
+         改为普通 SQL 以兼容 TiDB——TiDB 不支持存储过程） -->
+    <select id="searchMovies" parameterType="string"
             resultType="movie_rating_backend.entity.Movie">
-        {call sp_query_movies_by_actor(#{name, mode=IN, jdbcType=VARCHAR})}
+        SELECT m.*
+        FROM movie1707 m
+        JOIN movie_actor1707 ma ON m.MovieID = ma.MovieID
+        JOIN actor1707 a ON ma.ActorID = a.ActorID
+        WHERE a.Name = #{name}
     </select>
 </mapper>

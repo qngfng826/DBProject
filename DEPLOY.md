@@ -26,7 +26,7 @@ Render 和 Cloudflare Pages 都通过 GitHub 仓库自动拉取构建，所以�
 
 ```bash
 git add Movie_Rating_Backend/Dockerfile Movie_Rating_Backend/src/main/resources/application.yml \
-        movie-rating-frontend/src/api/request.js deploy/init.sql DEPLOY.md
+        movie-rating-frontend/src/api/request.js deploy/ DEPLOY.md
 git commit -m "chore: 添加云端部署配置（Dockerfile、环境变量化数据库连接、数据库导出）"
 git push origin main
 ```
@@ -38,22 +38,27 @@ git push origin main
 1. 打开 <https://tidbcloud.com>，用邮箱或 Google/GitHub 注册（免费，不用信用卡）。
 2. 创建 **Serverless Cluster**：选择离你近的区域（如 Singapore / Tokyo），其余默认。免费额度 5GB 存储 + 每月 5000 万请求单位，对本项目绰绰有余。
 3. 集群创建后，进入 **Cluster → Connect**，记下连接信息：
-   - Host（形如 `gateway01.xxx.prod.aws.tidbcloud.com`）
-   - Port（一般是 `4000`）
-   - Username（形如 `<随机串>.root`）
-   - 密码：第一次连接前需要在此页面设置一个 SQL 密码
+   - Host gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+   - Port 4000
+   - Username 3hK1ukcKQmUMPqj.root
+   - 密码：k9TmDUu8ioTeazJT
 4. 导入数据（两种方式任选）：
 
-   **方式 A（推荐，网页操作）**：集群页面左侧 **Import** → **Import from local file** → 上传本仓库的 `deploy/init.sql` → 按提示完成。dump 里自带 `CREATE DATABASE movie_info1707`，导入即建库。
-
-   **方式 B（命令行）**：在本机（需有 mysql 客户端，连接 TiDB 必须走 TLS）：
+   **方式 A（推荐，一条命令）**：本机就有 mysql 客户端，直接把完整的 `deploy/init.sql` 导入 TiDB（必须走 TLS）。注意用 **8.4.8 客户端**（9.6 客户端缺 TiDB 需要的认证插件，会报 2059 错误）：
    ```bash
-   mysql --host <Host> --port 4000 --user <Username> -p \
-     --ssl-mode=VERIFY_IDENTITY \
-     --get-server-public-key \
+   "D:\Download\MySQL848\bin\mysql.exe" --host <Host> --port 4000 --user <Username> -p \
+     --ssl-mode=VERIFY_IDENTITY --get-server-public-key \
      < deploy/init.sql
    ```
-   （若提示证书校验问题，可去掉 `--ssl-mode=VERIFY_IDENTITY` 改用 `--ssl-mode=REQUIRED`。）
+   dump 里自带 `CREATE DATABASE movie_info1707`、8 张表、全部数据和视图，跑完即完成。若证书校验报错，把 `--ssl-mode=VERIFY_IDENTITY` 换成 `--ssl-mode=REQUIRED`。
+
+   **方式 B（网页控制台，只支持 CSV）**：
+   1. 先建表结构：集群页面打开 **SQL Editor**，把 `deploy/schema.sql` 的内容（纯建表语句，含 `CREATE DATABASE`）整段粘贴执行。
+   2. 再逐表导数据：集群页面 **Import → Import from local file**，依次上传 `deploy/csv/` 下的 8 个 CSV：
+      - 每个文件的目标库选 `movie_info1707`、目标表选同名表（如 `movie1707.csv` → 表 `movie1707`）
+      - 分隔符选逗号，勾选 **第一行是表头/跳过首行**（如有该选项）
+      - 空字段按 NULL 处理（如有该选项）
+   3. 8 个文件顺序无所谓（都是纯数据行）。视图 `v_hot_movies` 不在 CSV 里，若需要可在 SQL Editor 单独执行 `init.sql` 末尾的 `CREATE VIEW v_hot_movies` 语句。
 
 5. 验证：在 TiDB Cloud 网页的 **SQL Editor** 里执行 `SELECT COUNT(*) FROM movie_info1707.movie1707;`，能看到数据即成功。
 
@@ -111,6 +116,11 @@ git push origin main
 
 ## 常见问题
 
+- **TiDB 不支持触发器和存储过程**：本地库的 3 个评分触发器和 2 个存储过程无法导入 TiDB。已做等效迁移：
+  - 触发器"评分后重算电影平均分"→ 改为 Java 服务层逻辑（`RatingServiceImpl.recalcMovieRating`，评分增/改/删后自动重算）
+  - 存储过程 `sp_query_movies_by_actor` / `sp_query_comments_by_movie` → mapper 已改为等价的普通 SQL（本地库的存储过程保留，课设演示不受影响）
+  - 因此 `deploy/init.sql` 用 `--skip-triggers` 导出，不含触发器和存储过程；后端功能在 MySQL 和 TiDB 上完全一致
+- **MySQL 9.x 客户端连 TiDB 报 `Authentication plugin 'mysql_native_password' cannot be loaded`**：9.x 客户端删除了该插件，改用 8.4.8 客户端（`D:\Download\MySQL848\bin\mysql.exe`）
 - **Render 构建失败 / 内存超限**：免费实例构建内存有限。本仓库 Dockerfile 已用多阶段构建；如仍失败，重试一次（Render 页面 Manual Deploy）。
 - **后端能启动但接口报数据库错误**：检查 `DB_URL/DB_USERNAME/DB_PASSWORD` 是否与 TiDB Cloud Connect 页面完全一致，重点确认 Host、端口 4000、用户名带 `.root` 后缀。
 - **前端能打开但请求全失败**：检查 Cloudflare Pages 的 `VITE_API_BASE_URL` 是否以后端地址 + `/api` 结尾（后端接口路径本身就带 `/api` 前缀，不要再拼一层）。
