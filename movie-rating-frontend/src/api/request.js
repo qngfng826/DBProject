@@ -8,7 +8,8 @@ const cache = new Map()
 const CACHE_DURATION = 5 * 60 * 1000 // 5分钟
 
 const request = axios.create({
-  baseURL: '/api',
+  // 生产环境通过 VITE_API_BASE_URL 指定后端地址，本地开发走 /api 由 vite 代理
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 8000
 })
 
