@@ -110,11 +110,11 @@ public class MovieController {
         // 请求体只有一个，actors/directors 数组嵌在 movie JSON 中
         List<Actor> filteredActors = movie.getActors() != null ? movie.getActors().stream()
                 .filter(a -> a.getActorId() != null)
-                .collect(java.util.stream.Collectors.toList()) : List.of();
+                .collect(java.util.stream.Collectors.toList()) : java.util.Collections.emptyList();
 
         List<Director> filteredDirectors = movie.getDirectors() != null ? movie.getDirectors().stream()
                 .filter(d -> d.getDirectorId() != null)
-                .collect(java.util.stream.Collectors.toList()) : List.of();
+                .collect(java.util.stream.Collectors.toList()) : java.util.Collections.emptyList();
 
         movieService.createMovieWithRelations(movie, filteredActors, filteredDirectors);
         return Result.success("添加成功");
@@ -129,11 +129,11 @@ public class MovieController {
         // 请求体只有一个，actors/directors 数组嵌在 movie JSON 中
         List<Actor> filteredActors = movie.getActors() != null ? movie.getActors().stream()
                 .filter(a -> a.getActorId() != null)
-                .collect(java.util.stream.Collectors.toList()) : List.of();
+                .collect(java.util.stream.Collectors.toList()) : java.util.Collections.emptyList();
 
         List<Director> filteredDirectors = movie.getDirectors() != null ? movie.getDirectors().stream()
                 .filter(d -> d.getDirectorId() != null)
-                .collect(java.util.stream.Collectors.toList()) : List.of();
+                .collect(java.util.stream.Collectors.toList()) : java.util.Collections.emptyList();
 
         movieService.updateMovieWithRelations(id, movie, filteredActors, filteredDirectors);
         return Result.success("更新成功");

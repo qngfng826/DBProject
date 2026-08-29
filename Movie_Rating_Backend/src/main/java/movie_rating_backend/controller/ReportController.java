@@ -4,6 +4,8 @@ import movie_rating_backend.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,10 +17,10 @@ public class ReportController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    // 与前端电影列表保持一致的电影类型列表
-    private static final List<String> MOVIE_GENRES = List.of(
+    // 与前端电影列表保持一致的电影类型列表（List.of 是 Java 9+ API，改用 Java 8 写法）
+    private static final List<String> MOVIE_GENRES = Collections.unmodifiableList(Arrays.asList(
             "剧情", "喜剧", "动作", "爱情", "科幻", "动画", "悬疑", "犯罪", "奇幻"
-    );
+    ));
 
     @GetMapping("/genre-summary")
     public Result<Map<String, Object>> getGenreSummary() {
