@@ -6,8 +6,9 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn package -DskipTests -B
 
-# ---- 运行阶段：JRE8 运行 jar ----
-FROM eclipse-temurin:8-jre-alpine
+# ---- 运行阶段：JRE 11 运行 jar（JDK 8 的 alpine 镜像 TLS 栈过老，连 TiDB 会握手失败） ----
+# 字节码由上方 JDK 8 以 target 1.8 编译，JRE 11 兼容运行
+FROM eclipse-temurin:11-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 # Render 免费实例 512MB 内存，限制堆大小避免被 OOM Kill

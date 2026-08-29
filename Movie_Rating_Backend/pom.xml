@@ -46,6 +46,13 @@
             <version>0.9.1</version>
         </dependency>
 
+        <!-- JJWT 0.9.1 依赖 javax.xml.bind（Java 11+ 已移除），Java 17 运行需显式引入 -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
         <!-- Spring Security -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
