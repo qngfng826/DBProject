@@ -23,6 +23,8 @@ public class SecurityConfig {
             .csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
+            .cors()  // 启用 CORS 支持，使用 WebMvcConfig 中的配置
+            .and()
             // 未认证（无 token / token 失效）时返回 401，而不是默认的 403
             .exceptionHandling()
             .authenticationEntryPoint((request, response, authException) -> {
