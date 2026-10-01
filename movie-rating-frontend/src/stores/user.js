@@ -1,10 +1,21 @@
 import { defineStore } from 'pinia'
-import request from '@/api/request'
+import request, { clearCache } from '@/api/request'
+
+// state 初始化时同步恢复 localStorage 里的用户信息：
+// 路由守卫先于 App.vue 的 onMounted 执行，若在这里不恢复，硬刷新 /admin 会被误判非管理员踢回首页
+function restoreUserInfo() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('userInfo'))
+    return parsed || {}
+  } catch (e) {
+    return {}
+  }
+}
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: localStorage.getItem('token') || null,
-    userInfo: {} // 初始化为空对象
+    userInfo: restoreUserInfo() // 初始化为空对象
   }),
 
   getters: {
@@ -17,6 +28,7 @@ export const useUserStore = defineStore('user', {
     async login(credentials) {
       try {
         const res = await request.post('/login', credentials) // 调用后端登录接口
+        clearCache() // 清掉上个账号遗留的 GET 缓存，避免串号
         this.token = res.data.token // 存储 token
         this.userInfo = res.data.user || {} // 存储用户信息
         if (!this.userInfo.userId && this.userInfo.UserID) {
@@ -44,6 +56,7 @@ export const useUserStore = defineStore('user', {
     clearToken() {
       this.token = null
       this.userInfo = {}
+      clearCache() // 用户级 GET 接口（我的评分/我的评论等）的缓存一并清空
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
     },

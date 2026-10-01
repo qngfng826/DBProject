@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { addRating, deleteRatingByMovieId, getUserRating } from '@/api/rating'
@@ -81,8 +81,10 @@ const router = useRouter()
 const userStore = useUserStore()
 
 function handleTitleClick() {
-  if (props.movie.jumpUrl) {
-    window.open(props.movie.jumpUrl, '_blank')
+  // 后端返回的字段大小写不固定（JumpUrl / jumpUrl），两种都兼容
+  const jumpUrl = props.movie.JumpUrl || props.movie.jumpUrl
+  if (jumpUrl) {
+    window.open(jumpUrl, '_blank')
   }
 }
 
@@ -130,7 +132,7 @@ async function handleRate(score) {
     fetchUserRating()
     emit('updateMovie')
   } catch (e) {
-    ElMessage.error('评分失败')
+    console.error('评分失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   }
 }
 
@@ -148,6 +150,16 @@ async function removeRating() {
 
 onMounted(() => {
   fetchUserRating()
+})
+
+// 路由复用组件时 movie 对象整体被替换：切换电影必须重置评分状态，
+// 否则会把上一部电影的"我的评分"残留到新电影上，误点"取消评分"会删错数据
+watch(() => props.movie.MovieID || props.movie.movieId, (newId, oldId) => {
+  if (newId !== oldId) {
+    myScore.value = 0
+    hasLoadedUserRating.value = false
+    fetchUserRating()
+  }
 })
 </script>
 

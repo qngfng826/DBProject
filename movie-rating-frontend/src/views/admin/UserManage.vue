@@ -94,7 +94,6 @@ async function fetchData() {
     total.value = res.data?.total || 0
   } catch (e) {
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
     list.value = [];
     total.value = 0 } finally { loading.value = false }
 }
@@ -116,7 +115,6 @@ async function save() {
     dialogVisible.value = false; fetchData()
   } catch (e) {
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
   } finally { saving.value = false }
 }
 
@@ -132,7 +130,6 @@ async function handleDelete(row) {
   } catch (e) {
     if (e === 'cancel' || e === 'close') return
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
   }
 }
 

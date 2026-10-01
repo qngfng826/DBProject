@@ -31,6 +31,10 @@
           <el-icon><UserFilled /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/comment">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>评论管理</span>
+        </el-menu-item>
         
         <el-divider style="border-color: rgba(255,255,255,0.2); margin: 15px 0;"></el-divider>
         
@@ -50,6 +54,7 @@
           <span v-else-if="currentPath === '/admin/actor'">演员管理</span>
           <span v-else-if="currentPath === '/admin/director'">导演管理</span>
           <span v-else-if="currentPath === '/admin/user'">用户管理</span>
+          <span v-else-if="currentPath === '/admin/comment'">评论管理</span>
           <span v-else>管理后台</span>
         </div>
         
@@ -70,7 +75,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Setting, VideoCamera, User, UserFilled, Film, HomeFilled } from '@element-plus/icons-vue'
+import { Setting, VideoCamera, User, UserFilled, Film, HomeFilled, ChatDotRound } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()

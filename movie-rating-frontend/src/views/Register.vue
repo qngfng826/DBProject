@@ -78,8 +78,7 @@ async function handleRegister() {
     ElMessage.success('注册成功，请登录')
     router.push('/login')
   } catch (e) {
-    ElMessage.error(e.response?.data?.msg || '注册失败')
-    console.error('注册失败:', e)
+    console.error('注册失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   } finally {
     loading.value = false
   }

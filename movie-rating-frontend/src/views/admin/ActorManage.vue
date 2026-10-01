@@ -77,7 +77,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { DataAnalysis, Search, Plus, Edit, Delete, User } from '@element-plus/icons-vue'
+import { DataAnalysis, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { getActorList, addActor, updateActor, deleteActor } from '@/api/actor'
 
 const list = ref([])
@@ -102,7 +102,6 @@ async function fetchData() {
     total.value = res.data?.total || 0
   } catch (e) { 
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
     list.value = []; 
     total.value = 0 } finally { loading.value = false }
 }
@@ -124,18 +123,18 @@ async function save() {
     dialogVisible.value = false; fetchData()
   } catch (e) {
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
   } finally { saving.value = false }
 }
 
 async function handleDelete(row) {
-  try { 
-    await ElMessageBox.confirm(`确定删除「${row.name}」?`, '提示', { type: 'warning' }); 
-    await deleteActor(row.actorId); ElMessage.success('已删除'); 
-    fetchData() 
+  try {
+    await ElMessageBox.confirm(`确定删除「${row.name}」?`, '提示', { type: 'warning' })
+    await deleteActor(row.actorId)
+    ElMessage.success('已删除')
+    fetchData()
   } catch (e) {
+    if (e === 'cancel' || e === 'close') return
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
   }
 }
 

@@ -38,7 +38,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getMovieComments, addComment, updateComment, deleteComment as delComment } from '@/api/comment'
 import { useUserStore } from '@/stores/user'
@@ -83,8 +83,7 @@ async function fetchComments() {
       CommentTime: c.CommentTime || c.commentTime
     }))
   } catch (e) {
-    console.error(e)
-    ElMessage.error('获取评论失败')
+    console.error('获取评论失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   }
 }
 
@@ -107,7 +106,7 @@ async function submitComment() {
     fetchComments()
     emit('updateComments')
   } catch (e) {
-    ElMessage.error(e.message || '评论失败')
+    console.error('评论失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   } finally {
     submitting.value = false
   }

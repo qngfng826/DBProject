@@ -61,7 +61,7 @@ const editForm = reactive({ id: null, content: '' })
 
 //统一权限检查时机
 function checkCommentPermission(c) {
-  const commentUserId = c.userId || c.UserID || c.userId
+  const commentUserId = c.userId || c.UserID || c.UserId
   if (commentUserId !== getCurrentUserId()) {
     ElMessage.error('你没有权限操作这条评论')
     return false
@@ -115,11 +115,6 @@ async function handleDelete(c) {
   if (!checkCommentPermission(c)) return
   try {
     await ElMessageBox.confirm('确定删除这条评论吗？', '提示', { type: 'warning' })
-    const commentUserId = c.userId || c.UserID || c.userId
-    if (commentUserId !== getCurrentUserId()) {
-      ElMessage.error('你没有权限删除这条评论')
-      return
-    }
     await deleteComment(c.commentId || c.CommentID)
     ElMessage.success('评论已删除')
     fetchComments()
@@ -138,6 +133,7 @@ async function fetchComments() {
     comments.value = list.map(c => ({
       ...c,
       commentId: c.commentId || c.CommentID,
+      userId: c.userId || c.UserID || c.UserId,
       movieId: c.movieId || c.MovieID,
       Title: c.Title || c.title,
       commentTime: c.commentTime || c.CommentTime,

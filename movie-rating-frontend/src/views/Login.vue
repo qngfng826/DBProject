@@ -53,7 +53,7 @@ async function handleLogin() {
       onClose: () => router.push('/')
     })
   } catch (e) {
-    ElMessage.error(e.message || '登录失败') // 显示具体错误
+    console.error('登录失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   } finally {
     loading.value = false
   }

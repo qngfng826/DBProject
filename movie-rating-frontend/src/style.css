@@ -74,6 +74,12 @@ a:hover {
   --el-button-active-border-color: var(--accent-dark);
 }
 
+/* 修复 v-loading 遮罩层白色背景问题 */
+.el-loading-mask {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px);
+}
+
 .el-card {
   --el-card-bg-color: var(--bg-card);
   --el-card-border-color: var(--border-color);

@@ -74,8 +74,8 @@ async function handleDelete(r) {
         fetchRatings() // 重新获取列表
     } catch (error) {
         // 用户取消操作
-        if (error !== 'cancel') {
-            ElMessage.error(error.message || '删除失败')
+        if (error !== 'cancel' && error !== 'close') {
+            console.error('删除评分失败:', error) // 错误提示已由 request.js 拦截器统一弹出
         }
     }
 }
@@ -88,18 +88,8 @@ async function fetchRatings() {
     if (res.data) {
       list = Array.isArray(res.data) ? res.data : (res.data.records || [])
     }
-    // 兼容大小写字段
-        ratings.value = list.map(r => ({
-      ...r,
-      ratingId: r.ratingId, 
-      movieId: r.movieId,
-      title: r.title,
-      posterUrl: r.posterUrl,
-      releaseYear: r.releaseYear,
-      genre: r.genre,
-      score: r.score,
-      ratingTime: r.ratingTime
-    }))
+    // 后端已返回前端需要的全部字段，直接赋值即可
+    ratings.value = list
   } catch (e) {
     ratings.value = []
   } finally {

@@ -151,10 +151,14 @@ const defaultForm = {
 const form = reactive({ ...defaultForm })
 
 async function loadOptions() {
-  const aRes = await getActorList({ page: 1, size: 9999 })
-  actorOptions.value = aRes.data?.records || []
-  const dRes = await getDirectorList({ page: 1, size: 9999 })
-  directorOptions.value = dRes.data?.records || []
+  try {
+    const aRes = await getActorList({ page: 1, size: 9999 })
+    actorOptions.value = aRes.data?.records || []
+    const dRes = await getDirectorList({ page: 1, size: 9999 })
+    directorOptions.value = dRes.data?.records || []
+  } catch (e) {
+    console.error('加载演员/导演选项失败:', e) // 错误提示已由 request.js 拦截器统一弹出
+  }
 }
 
 // 修改数据获取：支持分页参数
@@ -171,7 +175,6 @@ async function fetchData() {
     total.value = res.data?.total || 0
   } catch (e) { 
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
     movies.value = [] 
     total.value = 0
   } finally { 
@@ -225,7 +228,6 @@ async function saveMovie() {
     fetchData()
   } catch (e) {
     console.error("接口报错:", e);
-    ElMessage.error('操作失败，请查看控制台');
   } finally { saving.value = false }
 }
 
@@ -236,9 +238,9 @@ async function handleDelete(row) {
     ElMessage.success('删除成功')
     fetchData()
   } catch (e) {
-      console.error("接口报错:", e);
-      ElMessage.error('操作失败，请查看控制台');
-    }
+    if (e === 'cancel' || e === 'close') return
+    console.error("接口报错:", e)
+  }
 }
 
 onMounted(() => {

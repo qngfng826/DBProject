@@ -74,7 +74,6 @@ function goDetail(id) {
     console.error('Movie ID is empty, cannot navigate')
     return
   }
-  console.log('Navigating to movie detail:', `/movie/${id}`)
   router.push(`/movie/${id}`)
 }
 
@@ -94,7 +93,6 @@ async function fetchHotMovies() {
     } else if (res.data && Array.isArray(res.data.list)) {
       list = res.data.list
     }
-    console.log('Hot movies data:', list)
     hotMovies.value = list.map(m => ({
       ...m,
       movieId: m.movieId,
@@ -103,7 +101,6 @@ async function fetchHotMovies() {
       posterUrl: m.posterUrl || '',
       CommentCount: m.CommentCount || 0
     }))
-    console.log('Mapped movies:', hotMovies.value)
   } catch (e) {
     console.error('Error fetching hot movies:', e)
   } finally {

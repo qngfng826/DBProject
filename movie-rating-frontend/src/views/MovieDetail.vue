@@ -18,17 +18,13 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useRoute } from 'vue-router'
 import { getMovieDetail } from '@/api/movie'
-import { useUserStore } from '@/stores/user'
 
 import MovieHeader from '@/components/MovieDetail/MovieHeader.vue'
 import MovieCommentsSection from '@/components/MovieDetail/MovieCommentsSection.vue'
 
 const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
 
 const movie = ref(null)
 const directors = ref([])
@@ -36,12 +32,6 @@ const actors = ref([])
 const loading = ref(false)
 
 const movieId = ref(null)
-
-const defaultPoster = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" fill="#30363d"><rect width="200" height="300"/><text x="100" y="150" text-anchor="middle" fill="#8b949e" font-size="14">暂无海报</text></svg>')
-
-function handleImgError(e) {
-  e.target.src = defaultPoster
-}
 
 async function fetchDetail() {
   loading.value = true
@@ -70,8 +60,7 @@ async function fetchDetail() {
     actors.value = movieData.actors || movieData.Actors || []
 
   } catch (e) {
-    console.error(e)
-    ElMessage.error('获取电影信息失败')
+    console.error('获取电影信息失败:', e) // 错误提示已由 request.js 拦截器统一弹出
   } finally {
     loading.value = false
   }

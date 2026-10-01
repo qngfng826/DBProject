@@ -38,7 +38,8 @@ const routes = [
       { path: 'movie', component: () => import('@/views/admin/MovieManage.vue') },
       { path: 'actor', component: () => import('@/views/admin/ActorManage.vue') },
       { path: 'director', component: () => import('@/views/admin/DirectorManage.vue') },
-      { path: 'user', component: () => import('@/views/admin/UserManage.vue') }
+      { path: 'user', component: () => import('@/views/admin/UserManage.vue') },
+      { path: 'comment', component: () => import('@/views/admin/CommentManage.vue') }
     ]
   }
 ]

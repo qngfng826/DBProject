@@ -26,10 +26,6 @@ export function deleteMovie(id) {
   return request.delete(`/movie/${id}`)
 }
 
-export function getMovieComments(movieId) {
-  return request.get(`/comment/movie/${movieId}`)
-}
-
 export function getGenreSummary() {
   return request.get('/report/genre-summary')
 }

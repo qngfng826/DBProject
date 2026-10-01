@@ -1,25 +1,21 @@
 <template>
   <div class="page-container">
-    <div class="section-title"><el-icon><DataAnalysis /></el-icon>导演管理</div>
+    <div class="section-title"><el-icon><ChatDotRound /></el-icon>评论管理</div>
 
     <div class="admin-card toolbar-card">
-      <el-input v-model="keyword" placeholder="搜索导演姓名" clearable :prefix-icon="Search" style="width: 300px" @keyup.enter="handleSearch" @clear="handleSearch" />
-      <el-button type="primary" @click="openDialog(null)" :icon="Plus">新增导演</el-button>
+      <el-input v-model="keyword" placeholder="搜索评论内容、用户名或电影" clearable :prefix-icon="Search" style="width: 300px" @keyup.enter="handleSearch" @clear="handleSearch" />
     </div>
 
-    <!-- 移除了 stripe 属性 -->
     <div class="admin-card table-card">
       <el-table :data="list" v-loading="loading" style="width: 100%" :header-cell-style="{background:'#30363d', color:'#c9d1d9'}">
-        <el-table-column prop="directorId" label="ID" width="60" sortable />
-        <el-table-column prop="name" label="姓名" min-width="120" />
-        <el-table-column prop="gender" label="性别" width="80">
-          <template #default="{ row }">
-            <el-tag effect="plain" :type="row.gender === '男' ? 'primary' : 'danger'">{{ row.gender }}</el-tag>
-          </template>
+        <el-table-column prop="CommentID" label="ID" width="60" sortable />
+        <el-table-column prop="Username" label="用户名" min-width="110" />
+        <el-table-column prop="MovieTitle" label="电影" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="Content" label="评论内容" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="CommentTime" label="评论时间" width="160" sortable>
+          <template #default="{ row }">{{ formatTime(row.CommentTime) }}</template>
         </el-table-column>
-        <el-table-column prop="birthDate" label="出生日期" width="120" sortable />
-        <el-table-column prop="nationality" label="国籍" width="100" />
-        
+
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button text size="small" type="primary" :icon="Edit" @click="openDialog(row)">编辑</el-button>
@@ -33,31 +29,16 @@
       <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="currentPage" @current-change="handlePageChange" />
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="editing ? '编辑导演' : '新增导演'" width="450px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" title="编辑评论" width="500px" destroy-on-close>
       <el-form :model="form" label-width="100px" class="custom-form">
-        <el-form-item label="姓名">
-          <el-input v-model="form.name" placeholder="导演姓名" />
+        <el-form-item label="用户名">
+          <el-input v-model="form.username" disabled />
         </el-form-item>
-        
-        <el-form-item label="性别">
-          <el-radio-group v-model="form.gender">
-            <el-radio value="男">男</el-radio>
-            <el-radio value="女">女</el-radio>
-          </el-radio-group>
+        <el-form-item label="电影">
+          <el-input v-model="form.movieTitle" disabled />
         </el-form-item>
-
-        <el-form-item label="出生日期">
-          <el-date-picker 
-            v-model="form.birthDate" 
-            type="date" 
-            placeholder="选择日期" 
-            value-format="YYYY-MM-DD" 
-            style="width: 100%"
-          />
-        </el-form-item>
-        
-        <el-form-item label="国籍">
-          <el-input v-model="form.nationality" placeholder="如：美国" />
+        <el-form-item label="评论内容">
+          <el-input v-model="form.content" type="textarea" :rows="5" maxlength="500" show-word-limit placeholder="评论内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -71,63 +52,73 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { DataAnalysis, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { getDirectorList, addDirector, updateDirector, deleteDirector } from '@/api/director'
+import { ChatDotRound, Search, Edit, Delete } from '@element-plus/icons-vue'
+import { getCommentList, adminUpdateComment, adminDeleteComment } from '@/api/comment'
 
 const list = ref([])
 const loading = ref(false)
 const keyword = ref('')
 const dialogVisible = ref(false)
-const editing = ref(false)
 const saving = ref(false)
 
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-const defaultForm = { directorId: null, name: '', gender: '男', birthDate: '', nationality: '' }
-const form = reactive({ ...defaultForm })
+const form = reactive({ commentId: null, username: '', movieTitle: '', content: '' })
+
+function formatTime(t) {
+  if (!t) return '-'
+  const d = new Date(t)
+  if (isNaN(d.getTime())) return t
+  const pad = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 async function fetchData() {
   loading.value = true
   try {
-    const res = await getDirectorList({ page: currentPage.value, size: pageSize.value, keyword: keyword.value })
+    const res = await getCommentList({ page: currentPage.value, size: pageSize.value, keyword: keyword.value })
     list.value = res.data?.records || res.data || []
     total.value = res.data?.total || 0
-  } catch (e) { 
-    console.error("接口报错:", e); 
-    list.value = []; total.value = 0 } finally { loading.value = false }
+  } catch (e) {
+    console.error("接口报错:", e);
+    list.value = [];
+    total.value = 0 } finally { loading.value = false }
 }
 
 function handleSearch() { currentPage.value = 1; fetchData() }
 function handlePageChange(val) { currentPage.value = val; fetchData() }
 
 function openDialog(row) {
-  editing.value = !!row
-  Object.assign(form, row || defaultForm)
+  Object.assign(form, { commentId: row.CommentID, username: row.Username, movieTitle: row.MovieTitle, content: row.Content })
   dialogVisible.value = true
 }
 
 async function save() {
+  if (!form.content.trim()) {
+    ElMessage.warning('评论内容不能为空')
+    return
+  }
   saving.value = true
   try {
-    if (editing.value) { await updateDirector(form.directorId, form); ElMessage.success('更新成功') }
-    else { await addDirector(form); ElMessage.success('添加成功') }
+    await adminUpdateComment(form.commentId, { content: form.content })
+    ElMessage.success('更新成功')
     dialogVisible.value = false; fetchData()
   } catch (e) {
-    console.error("接口报错:", e); 
+    console.error("接口报错:", e);
   } finally { saving.value = false }
 }
 
 async function handleDelete(row) {
   try {
-    await ElMessageBox.confirm(`确定删除「${row.name}」?`, '提示', { type: 'warning' })
-    await deleteDirector(row.directorId)
+    await ElMessageBox.confirm(`确定删除用户「${row.Username}」对电影「${row.MovieTitle}」的评论?`, '提示', { type: 'warning' })
+    await adminDeleteComment(row.CommentID)
     ElMessage.success('已删除')
     fetchData()
   } catch (e) {
     if (e === 'cancel' || e === 'close') return
-    console.error("接口报错:", e)
+    console.error("接口报错:", e);
   }
 }
 
@@ -151,41 +142,37 @@ onMounted(() => fetchData())
 }
 
 :deep(.el-table__body tr > td) {
-  background-color: #1e2126 !important;
+  background-color: #1e2126 !important; /* 强制统一背景 */
 }
 
 :deep(.el-table__body tr.hover-row > td) {
-  background-color: #30363d !important;
+  background-color: #30363d !important; /* 悬停高亮 */
 }
 
 :deep(.el-table::before) { background-color: transparent; }
-/* --- 分页组件样式增强 --- */
 
-/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
+/* --- 分页组件样式增强 --- */
 .pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary); /* 使用次级背景色 */
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color); /* 添加边框 */
+  border: 1px solid var(--border-color);
   font-weight: 500;
-  border-radius: 4px; /* 圆角 */
+  border-radius: 4px;
 }
 
-/* 2. 鼠标悬停：显示主题色边框 */
 .pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
   color: var(--accent);
   border-color: var(--accent);
 }
 
-/* 3. 当前页（激活状态）：最明显的颜色 */
 .pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important; /* 强制背景为主题色 */
-  color: #fff !important; /* 文字改为白色，对比度高 */
-  font-weight: bold; /* 加粗 */
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  font-weight: bold;
   border-color: var(--accent);
   cursor: default;
 }
 
-/* 4. 上一页/下一页按钮样式 */
 .pagination-wrapper :deep(.el-pagination button) {
   background-color: var(--bg-secondary);
   color: var(--text-primary);

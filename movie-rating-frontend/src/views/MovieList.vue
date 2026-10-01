@@ -119,6 +119,8 @@ function goDetail(id) {
 }
 
 function handleSearch() {
+  // 新搜索条件从第一页开始，避免带着旧页码查询出空列表
+  pagination.current = 1
   fetchMovies()
 }
 
