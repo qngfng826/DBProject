@@ -1,4 +1,5 @@
 package movie_rating_backend.controller;
+import movie_rating_backend.annotation.AuthRequired;
 import movie_rating_backend.entity.User;
 import movie_rating_backend.service.UserService;
 import movie_rating_backend.utils.Result;
@@ -19,10 +20,12 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/list")
+    @AuthRequired(admin = true)
     public Result<?> list() { return Result.success(userService.list()); }
 
     // 分页搜索接口（供后台用户管理使用，关键字匹配用户名或邮箱）
     @GetMapping("/search")
+    @AuthRequired(admin = true)
     public Result<IPage<User>> search(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -41,10 +44,12 @@ public class UserController {
     }
 
     @PutMapping
+    @AuthRequired(admin = true)
     public Result<?> update(@RequestBody User user) { userService.updateById(user); return Result.success(); }
 
     // 按 id 更新用户（供后台用户管理使用）
     @PutMapping("/{id}")
+    @AuthRequired(admin = true)
     public Result<String> updateById(@PathVariable Integer id, @RequestBody User user) {
         user.setUserId(id);
         // 前端传了新密码才重置密码；数据库存的是 BCrypt 哈希，明文需先加密。
@@ -60,6 +65,7 @@ public class UserController {
 
     // 按 id 删除用户（供后台用户管理使用）
     @DeleteMapping("/{id}")
+    @AuthRequired(admin = true)
     public Result<String> delete(@PathVariable Integer id) {
         boolean success = userService.removeById(id);
         return success ? Result.success("删除成功") : Result.error(500, "删除失败");

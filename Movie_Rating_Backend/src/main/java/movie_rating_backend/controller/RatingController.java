@@ -34,6 +34,15 @@ public class RatingController {
     @DeleteMapping("/{id}")
     @AuthRequired
     public Result<String> deleteRating(@PathVariable("id") Integer ratingId) {
+        // 只允许删除本人评分
+        Integer userId = UserContextHolder.getUserId();
+        Rating existing = ratingService.getById(ratingId);
+        if (existing == null) {
+            return Result.error(404, "评分不存在");
+        }
+        if (!existing.getUserId().equals(userId)) {
+            return Result.error(403, "无权删除此评分");
+        }
         ratingService.removeRating(ratingId);
         return Result.success("评分已删除");
     }

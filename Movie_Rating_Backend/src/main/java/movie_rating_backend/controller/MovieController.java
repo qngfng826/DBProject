@@ -104,7 +104,7 @@ public class MovieController {
 
     // 5. 新增电影（使用批量插入 + 事务）
     @PostMapping
-    @AuthRequired
+    @AuthRequired(admin = true)
     @Transactional(rollbackFor = Exception.class)
     public Result<String> add(@RequestBody Movie movie) {
         // 请求体只有一个，actors/directors 数组嵌在 movie JSON 中
@@ -122,7 +122,7 @@ public class MovieController {
 
     // 6. 更新电影（使用批量插入 + 事务）
     @PutMapping("/{id}")
-    @AuthRequired
+    @AuthRequired(admin = true)
     @Transactional(rollbackFor = Exception.class)
     public Result<String> update(@PathVariable Integer id,
                                 @RequestBody Movie movie) {
@@ -141,7 +141,7 @@ public class MovieController {
 
     // 7. 删除电影（使用事务）
     @DeleteMapping("/{id}")
-    @AuthRequired
+    @AuthRequired(admin = true)
     @Transactional(rollbackFor = Exception.class)
     public Result<String> delete(@PathVariable Integer id) {
         movieService.deleteMovieWithRelations(id);

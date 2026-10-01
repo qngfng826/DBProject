@@ -38,4 +38,9 @@ public class Comment {
     @TableField(exist = false)
     @JsonProperty("Username")
     private String username;
+
+    // 关联查询出的电影标题，仅供后台评论管理列表展示
+    @TableField(exist = false)
+    @JsonProperty("MovieTitle")
+    private String movieTitle;
 }

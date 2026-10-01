@@ -137,42 +137,6 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
     }
 
     /**
-     * 搜索电影（支持关键字、类型、年份、排序）
-     */
-    @Override
-    public Movie searchMovies(int page, int size, String keyword, String genre, Integer year, String sort) {
-        LambdaQueryWrapper<Movie> queryWrapper = new LambdaQueryWrapper<>();
-
-        if (StringUtils.hasText(keyword)) {
-            queryWrapper.like(Movie::getTitle, keyword);
-        }
-        if (StringUtils.hasText(genre)) {
-            queryWrapper.like(Movie::getGenre, genre);
-        }
-        if (year != null) {
-            queryWrapper.eq(Movie::getReleaseYear, year);
-        }
-        if (StringUtils.hasText(sort)) {
-            switch (sort) {
-                case "rating_desc":
-                    queryWrapper.orderByDesc(Movie::getRating);
-                    break;
-                case "rating_asc":
-                    queryWrapper.orderByAsc(Movie::getRating);
-                    break;
-                case "year_desc":
-                    queryWrapper.orderByDesc(Movie::getReleaseYear);
-                    break;
-                case "year_asc":
-                    queryWrapper.orderByAsc(Movie::getReleaseYear);
-                    break;
-            }
-        }
-
-        return movieMapper.selectOne(queryWrapper);
-    }
-
-    /**
      * 获取热门电影列表
      * 按平均评分和综合评分排序
      */

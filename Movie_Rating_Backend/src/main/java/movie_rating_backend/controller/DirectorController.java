@@ -1,5 +1,6 @@
 package movie_rating_backend.controller;
 
+import movie_rating_backend.annotation.AuthRequired;
 import movie_rating_backend.entity.Director;
 import movie_rating_backend.service.DirectorService;
 import movie_rating_backend.utils.Result;
@@ -57,6 +58,7 @@ public class DirectorController {
 
     // 4. 新增导演
     @PostMapping
+    @AuthRequired(admin = true)
     public Result<String> add(@RequestBody Director director) {
         boolean success = directorService.save(director);
         return success ? Result.success("添加成功") : Result.error(500, "添加失败");
@@ -64,6 +66,7 @@ public class DirectorController {
 
     // 5. 更新导演
     @PutMapping("/{id}")
+    @AuthRequired(admin = true)
     public Result<String> update(@PathVariable Integer id, @RequestBody Director director) {
         director.setDirectorId(id);
         boolean success = directorService.updateById(director);
@@ -72,6 +75,7 @@ public class DirectorController {
 
     // 6. 删除导演
     @DeleteMapping("/{id}")
+    @AuthRequired(admin = true)
     public Result<String> delete(@PathVariable Integer id) {
         boolean success = directorService.removeById(id);
         return success ? Result.success("删除成功") : Result.error(500, "删除失败");

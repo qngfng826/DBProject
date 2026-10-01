@@ -37,11 +37,6 @@ public interface MovieService extends IService<Movie> {
     void deleteMovieWithRelations(Integer movieId);
 
     /**
-     * 搜索电影（支持关键字、类型、年份、排序）
-     */
-    Movie searchMovies(int page, int size, String keyword, String genre, Integer year, String sort);
-
-    /**
      * 获取热门电影列表
      * 按平均评分和综合评分排序
      */

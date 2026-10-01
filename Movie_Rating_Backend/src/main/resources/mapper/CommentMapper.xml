@@ -32,5 +32,20 @@
         WHERE c.MovieID = #{movieId}
         ORDER BY c.CommentTime DESC
     </select>
+    <!-- 后台评论管理：分页搜索，关键字匹配评论内容/用户名/电影标题 -->
+    <select id="searchCommentsWithUsername" resultType="movie_rating_backend.entity.Comment">
+        SELECT c.*, u.Username, m.Title AS MovieTitle
+        FROM comment1707 c
+        LEFT JOIN user1707 u ON c.UserID = u.UserID
+        LEFT JOIN movie1707 m ON c.MovieID = m.MovieID
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (c.Content LIKE CONCAT('%', #{keyword}, '%')
+                OR u.Username LIKE CONCAT('%', #{keyword}, '%')
+                OR m.Title LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY c.CommentTime DESC
+    </select>
 
 </mapper>
