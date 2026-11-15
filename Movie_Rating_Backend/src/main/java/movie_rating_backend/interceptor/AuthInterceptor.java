@@ -20,22 +20,13 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestURI = request.getRequestURI();
-        String method = request.getMethod();
-
-        log.info("=== AuthInterceptor 被调用 ===");
-        log.info("请求路径: {} {}", method, requestURI);
-        log.info("请求方法: {}", method);
 
         // 放行登录和注册接口，不需要认证
         if (requestURI.contains("/api/login") || requestURI.contains("/api/register")) {
-            log.info("✓ 放行登录/注册接口: {}", requestURI);
             return true;
         }
 
-        log.info("✗ 登录/注册接口外的请求，需要进行认证检查");
-
         if (!(handler instanceof HandlerMethod)) {
-            log.info("✓ Handler 不是 HandlerMethod，放行");
             return true;
         }
 
@@ -44,22 +35,17 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         AuthRequired authRequired = handlerMethodObj.getAnnotation(AuthRequired.class);
         if (authRequired == null) {
-            log.info("✓ 没有 @AuthRequired 注解，放行");
             return true;
         }
 
-        log.info("✓ 发现 @AuthRequired 注解");
-
         String token = request.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
-            log.warn("✗ 没有有效的 Authorization header");
+            log.warn("没有有效的 Authorization header");
             response.setStatus(401);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"code\":401, \"message\":\"未登录或登录失效\"}");
             return false;
         }
-
-        log.info("✓ 找到 Bearer token，长度: {}", token.length());
 
         token = token.substring(7);
         Integer userId = JwtUtil.getUserId(token);
@@ -75,22 +61,21 @@ public class AuthInterceptor implements HandlerInterceptor {
                                 .anyMatch(granted -> granted.getAuthority().equals("ROLE_ADMIN"));
 
                     if (!isAdmin) {
-                        log.warn("✗ 用户 {} 不是管理员，需要管理员权限", userId);
+                        log.warn("用户 {} 不是管理员，需要管理员权限", userId);
                         response.setStatus(403);
                         response.setContentType("application/json;charset=UTF-8");
                         response.getWriter().write("{\"code\":403, \"message\":\"需要管理员权限\"}");
                         return false;
                     }
-                    log.info("✓ 用户 {} 是管理员，有权限访问", userId);
                 } else {
-                    log.warn("✗ 用户未认证");
+                    log.warn("用户未认证");
                     response.setStatus(403);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"code\":403, \"message\":\"需要管理员权限\"}");
                     return false;
                 }
             } catch (Exception e) {
-                log.error("✗ 获取管理员权限失败", e);
+                log.error("获取管理员权限失败", e);
                 response.setStatus(403);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"code\":403, \"message\":\"需要管理员权限\"}");
@@ -101,7 +86,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 将 userId 存入 ThreadLocal
         UserContextHolder.setUserId(userId);
 
-        log.info("✓ 认证通过，用户ID: {}", userId);
         return true;
     }
 
