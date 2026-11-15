@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="admin-page">
     <div class="section-title"><el-icon><UserFilled /></el-icon>用户管理</div>
 
     <div class="admin-card toolbar-card">
@@ -7,7 +7,7 @@
     </div>
 
     <div class="admin-card table-card">
-      <el-table :data="list" v-loading="loading" style="width: 100%" :header-cell-style="{background:'#30363d', color:'#c9d1d9'}">
+      <el-table :data="list" v-loading="loading" style="width: 100%">
         <el-table-column prop="userId" label="ID" width="60" sortable />
         <el-table-column prop="username" label="用户名" min-width="120" />
         <el-table-column prop="email" label="邮箱" min-width="180" />
@@ -136,58 +136,3 @@ async function handleDelete(row) {
 onMounted(() => fetchData())
 </script>
 
-<style scoped>
-.page-container { padding: 20px; }
-.admin-card { background: #1e2126; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
-.toolbar-card { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
-
-/* 全黑表格样式覆盖 */
-:deep(.el-table) {
-  --el-table-bg-color: #1e2126;
-  --el-table-tr-bg-color: #1e2126;
-  --el-table-header-bg-color: #161b22;
-  --el-table-row-hover-bg-color: #30363d;
-  --el-table-text-color: #c9d1d9;
-  --el-table-border-color: #30363d;
-}
-
-:deep(.el-table__body tr > td) {
-  background-color: #1e2126 !important; /* 强制统一背景 */
-}
-
-:deep(.el-table__body tr.hover-row > td) {
-  background-color: #30363d !important; /* 悬停高亮 */
-}
-
-:deep(.el-table::before) { background-color: transparent; }
-
-/* --- 分页组件样式增强 --- */
-.pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  font-weight: 500;
-  border-radius: 4px;
-}
-
-.pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important;
-  color: #fff !important;
-  font-weight: bold;
-  border-color: var(--accent);
-  cursor: default;
-}
-
-.pagination-wrapper :deep(.el-pagination button) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="admin-page">
     <div class="section-title"><el-icon><DataAnalysis /></el-icon>导演管理</div>
 
     <div class="admin-card toolbar-card">
@@ -9,7 +9,7 @@
 
     <!-- 移除了 stripe 属性 -->
     <div class="admin-card table-card">
-      <el-table :data="list" v-loading="loading" style="width: 100%" :header-cell-style="{background:'#30363d', color:'#c9d1d9'}">
+      <el-table :data="list" v-loading="loading" style="width: 100%">
         <el-table-column prop="directorId" label="ID" width="60" sortable />
         <el-table-column prop="name" label="姓名" min-width="120" />
         <el-table-column prop="gender" label="性别" width="80">
@@ -134,62 +134,3 @@ async function handleDelete(row) {
 onMounted(() => fetchData())
 </script>
 
-<style scoped>
-.page-container { padding: 20px; }
-.admin-card { background: #1e2126; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
-.toolbar-card { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
-
-/* 全黑表格样式覆盖 */
-:deep(.el-table) {
-  --el-table-bg-color: #1e2126;
-  --el-table-tr-bg-color: #1e2126;
-  --el-table-header-bg-color: #161b22;
-  --el-table-row-hover-bg-color: #30363d;
-  --el-table-text-color: #c9d1d9;
-  --el-table-border-color: #30363d;
-}
-
-:deep(.el-table__body tr > td) {
-  background-color: #1e2126 !important;
-}
-
-:deep(.el-table__body tr.hover-row > td) {
-  background-color: #30363d !important;
-}
-
-:deep(.el-table::before) { background-color: transparent; }
-/* --- 分页组件样式增强 --- */
-
-/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
-.pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary); /* 使用次级背景色 */
-  color: var(--text-primary);
-  border: 1px solid var(--border-color); /* 添加边框 */
-  font-weight: 500;
-  border-radius: 4px; /* 圆角 */
-}
-
-/* 2. 鼠标悬停：显示主题色边框 */
-.pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* 3. 当前页（激活状态）：最明显的颜色 */
-.pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important; /* 强制背景为主题色 */
-  color: #fff !important; /* 文字改为白色，对比度高 */
-  font-weight: bold; /* 加粗 */
-  border-color: var(--accent);
-  cursor: default;
-}
-
-/* 4. 上一页/下一页按钮样式 */
-.pagination-wrapper :deep(.el-pagination button) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-</style>

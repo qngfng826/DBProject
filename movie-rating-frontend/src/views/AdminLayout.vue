@@ -77,6 +77,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Setting, VideoCamera, User, UserFilled, Film, HomeFilled, ChatDotRound } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import '@/assets/admin-theme.css'
 
 const route = useRoute()
 const router = useRouter()

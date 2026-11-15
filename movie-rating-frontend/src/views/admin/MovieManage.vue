@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="admin-page">
     <div class="section-title">
       <el-icon><DataAnalysis /></el-icon>
       电影管理
@@ -19,11 +19,10 @@
     </div>
 
     <div class="admin-card table-card">
-      <el-table 
-        :data="movies" 
-        v-loading="loading" 
-        style="width: 100%" 
-        :header-cell-style="{background:'#30363d', color:'#c9d1d9'}"
+      <el-table
+        :data="movies"
+        v-loading="loading"
+        style="width: 100%"
       >
         <el-table-column prop="movieId" label="ID" width="60" sortable />
         
@@ -251,83 +250,11 @@ onMounted(() => {
 
 
 <style scoped>
-/* === 核心修改：全黑表格样式 === */
-.page-container { padding: 20px; }
-.admin-card {
-  background: var(--bg-card, #1e2126); /* 统一深色卡片背景 */
-  border: 1px solid var(--border-color, #30363d);
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
-.toolbar-card { display: flex; justify-content: space-between; align-items: center; }
-.pagination-wrapper { margin-top: 20px; display: flex; justify-content: flex-end; }
-
-/* 1. 移除斑马纹，统一背景色 */
-:deep(.el-table) {
-  --el-table-bg-color: #1e2126;        /* 表格整体背景 */
-  --el-table-tr-bg-color: #1e2126;     /* 行背景统一为全黑（深灰） */
-  --el-table-header-bg-color: #161b22; /* 表头稍微深一点，形成层次 */
-  --el-table-row-hover-bg-color: #30363d; /* 鼠标悬停时变亮，提供交互反馈 */
-  --el-table-text-color: #c9d1d9;
-  --el-table-header-text-color: #c9d1d9;
-  --el-table-border-color: #30363d;
-}
-
-/* 2. 强制覆盖 Element Plus 可能残留的斑马纹逻辑 */
-:deep(.el-table__body tr.current-row > td),
-:deep(.el-table__body tr.hover-row > td) {
-  background-color: #30363d !important; /* 悬停高亮色 */
-}
-
-:deep(.el-table__body tr > td) {
-  background-color: #1e2126 !important; /* 强制所有行背景统一 */
-}
-
-/* 3. 移除表格底部白线 */
-:deep(.el-table::before),
-:deep(.el-table__inner-wrapper::before) {
-  background-color: transparent;
-}
-
+/* 暗色表格/卡片/分页公共样式已抽取至 src/assets/admin-theme.css（AdminLayout 引入） */
 .image-slot {
   width: 50px; height: 75px;
   display: flex; justify-content: center; align-items: center;
   background: #30363d; border-radius: 4px;
   color: #8b949e; font-size: 20px;
-}
-
-/* --- 分页组件样式增强 --- */
-
-/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
-.pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary); /* 使用次级背景色 */
-  color: var(--text-primary);
-  border: 1px solid var(--border-color); /* 添加边框 */
-  font-weight: 500;
-  border-radius: 4px; /* 圆角 */
-}
-
-/* 2. 鼠标悬停：显示主题色边框 */
-.pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* 3. 当前页（激活状态）：最明显的颜色 */
-.pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important; /* 强制背景为主题色 */
-  color: #fff !important; /* 文字改为白色，对比度高 */
-  font-weight: bold; /* 加粗 */
-  border-color: var(--accent);
-  cursor: default;
-}
-
-/* 4. 上一页/下一页按钮样式 */
-.pagination-wrapper :deep(.el-pagination button) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
 }
 </style>
