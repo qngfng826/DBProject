@@ -5,7 +5,6 @@ import movie_rating_backend.entity.Rating;
 import movie_rating_backend.entity.MovieRating;
 import movie_rating_backend.utils.Result; // 假设你的统一返回类叫 Result，如果叫其他名请改一下
 import movie_rating_backend.service.RatingService;
-import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.UserContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

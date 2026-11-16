@@ -2,17 +2,34 @@ package movie_rating_backend.utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * JWT 工具（Spring Bean）。
+ * 签名密钥仅从配置读取：环境变量 JWT_SECRET 优先，本地开发使用 application-local.yml 的 jwt.secret；
+ * 源码中不包含任何默认密钥，密钥缺失时应用启动即失败（fail-fast）。
+ */
+@Component
 public class JwtUtil {
-    // 密钥支持通过环境变量 JWT_SECRET 注入；默认值仅供本地开发，部署环境务必配置并轮换
-    private static final String SECRET = System.getenv("JWT_SECRET") != null
-            ? System.getenv("JWT_SECRET") : "movie_rating_secret_key_2024";
+
     private static final long EXPIRE_TIME = 1000 * 60 * 60 * 24; // 24小时
 
-    public static String createToken(Integer userId, String username, String role) {
+    private final Algorithm algorithm;
+
+    public JwtUtil(@Value("${jwt.secret:}") String secret) {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException(
+                    "JWT 密钥未配置：请设置环境变量 JWT_SECRET，或在本地 application-local.yml 中配置 jwt.secret（模板见 application-local.yml.example）");
+        }
+        this.algorithm = Algorithm.HMAC256(secret.trim());
+    }
+
+    public String createToken(Integer userId, String username, String role) {
         Map<String, Object> header = new HashMap<>();
         header.put("alg", "HS256");
         header.put("typ", "JWT");
@@ -22,10 +39,10 @@ public class JwtUtil {
                 .withClaim("username", username)
                 .withClaim("role", role)
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRE_TIME))
-                .sign(Algorithm.HMAC256(SECRET));
+                .sign(algorithm);
     }
 
-    public static Integer getUserId(String token) {
+    public Integer getUserId(String token) {
         if (token == null || token.isEmpty()) {
             throw new IllegalArgumentException("Token不能为空");
         }
@@ -34,14 +51,14 @@ public class JwtUtil {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        return JWT.require(Algorithm.HMAC256(SECRET))
+        return JWT.require(algorithm)
                 .build()
                 .verify(token)
                 .getClaim("userId")
                 .asInt();
     }
 
-    public static String getRole(String token) {
+    public String getRole(String token) {
         if (token == null || token.isEmpty()) {
             return "user";
         }
@@ -50,14 +67,14 @@ public class JwtUtil {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        return JWT.require(Algorithm.HMAC256(SECRET))
+        return JWT.require(algorithm)
                 .build()
                 .verify(token)
                 .getClaim("role")
                 .asString();
     }
 
-    public static String getUsername(String token) {
+    public String getUsername(String token) {
         if (token == null || token.isEmpty()) {
             return null;
         }
@@ -66,20 +83,19 @@ public class JwtUtil {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        return JWT.require(Algorithm.HMAC256(SECRET))
+        return JWT.require(algorithm)
                 .build()
                 .verify(token)
                 .getClaim("username")
                 .asString();
     }
-    public static boolean validateToken(String token) {
+
+    public boolean validateToken(String token) {
         try {
-            JWT.require(Algorithm.HMAC256(SECRET)).build().verify(token);
+            JWT.require(algorithm).build().verify(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
-
 }
-

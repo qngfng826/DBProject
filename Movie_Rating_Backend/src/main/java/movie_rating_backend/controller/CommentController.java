@@ -27,6 +27,9 @@ public class CommentController {
     @Autowired
     private CommentMapper commentMapper;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // 发表评论
     @PostMapping
     public Result<String> addComment(@RequestBody Comment comment, HttpServletRequest request) {
@@ -34,7 +37,7 @@ public class CommentController {
             String token = request.getHeader("Authorization");
             if (token == null) return Result.error(401, "未登录");
 
-            Integer userId = JwtUtil.getUserId(token);
+            Integer userId = jwtUtil.getUserId(token);
             comment.setUserId(userId);
 
             commentService.save(comment);
@@ -54,7 +57,7 @@ public class CommentController {
             String token = request.getHeader("Authorization");
             if (token == null) return Result.error(401, "未登录");
 
-            Integer userId = JwtUtil.getUserId(token);
+            Integer userId = jwtUtil.getUserId(token);
 
             // 验证评论是否属于当前用户
             Comment existingComment = commentService.getById(id);
@@ -80,7 +83,7 @@ public class CommentController {
             String token = request.getHeader("Authorization");
             if (token == null) return Result.error(401, "未登录");
 
-            Integer userId = JwtUtil.getUserId(token);
+            Integer userId = jwtUtil.getUserId(token);
 
             // 验证评论是否属于当前用户
             Comment existingComment = commentService.getById(id);
@@ -112,7 +115,7 @@ public class CommentController {
         try {
             String token = request.getHeader("Authorization");
             if (token == null) return Result.error(401, "未登录");
-            Integer userId = JwtUtil.getUserId(token);
+            Integer userId = jwtUtil.getUserId(token);
             List<MovieComment> list = commentService.getUserComments(userId);
             return Result.success(list);
         } catch (Exception e) {

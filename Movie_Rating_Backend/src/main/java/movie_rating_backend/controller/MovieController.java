@@ -29,6 +29,9 @@ public class MovieController {
     @Autowired
     private MovieMapper movieMapper;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // 1. 获取列表（简单列表，用于某些场景）
     @GetMapping("/list")
     public Result<?> List() {
@@ -85,7 +88,7 @@ public class MovieController {
         String token = request.getHeader("Authorization");
         if (token != null) {
             try {
-                userId = JwtUtil.getUserId(token);
+                userId = jwtUtil.getUserId(token);
             } catch (Exception e) {
                 // token 无效或过期，userId 为 null
             }

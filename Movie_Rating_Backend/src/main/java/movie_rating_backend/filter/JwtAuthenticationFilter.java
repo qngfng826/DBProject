@@ -2,6 +2,7 @@ package movie_rating_backend.filter;
 
 import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.UserContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,9 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,16 +36,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && token.startsWith("Bearer ")) {
             try {
                 token = token.substring(7);
-                if (JwtUtil.validateToken(token)) {
-                    Integer userId = JwtUtil.getUserId(token);
-                    String role = JwtUtil.getRole(token);
+                if (jwtUtil.validateToken(token)) {
+                    Integer userId = jwtUtil.getUserId(token);
+                    String role = jwtUtil.getRole(token);
 
                     // 供 RatingController 等使用 UserContextHolder 的地方获取用户 id
                     UserContextHolder.setUserId(userId);
 
                     // 设置用户角色权限；旧 token 没有 role claim（getRole 返回 null），
                     // 回退用 username 判断管理员，与 UserServiceImpl.login 的判定规则一致
-                    boolean isAdmin = "admin".equals(role) || "admin".equals(JwtUtil.getUsername(token));
+                    boolean isAdmin = "admin".equals(role) || "admin".equals(jwtUtil.getUsername(token));
                     java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities;
                     if (isAdmin) {
                         authorities = java.util.Collections.singletonList(

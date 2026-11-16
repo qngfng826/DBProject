@@ -1,0 +1,11 @@
+# 本地开发配置模板
+# 使用方法：复制本文件为 application-local.yml 并填入真实值。
+# application-local.yml 已被 .gitignore 忽略，不会入库——请勿提交任何真实凭据。
+# 加载方式：application.yml 中 spring.config.import: optional:file:./application-local.yml
+# 工作目录须为 Movie_Rating_Backend（mvnw 运行与 IDEA 模块默认工作目录均满足）
+# 优先级：环境变量（DB_PASSWORD / JWT_SECRET）> 本文件 > application.yml 默认值
+spring:
+  datasource:
+    password: <本地 MySQL 密码>
+jwt:
+  secret: <本地开发 JWT 密钥：任意足够长的随机字符串，建议 openssl rand -hex 32 生成>

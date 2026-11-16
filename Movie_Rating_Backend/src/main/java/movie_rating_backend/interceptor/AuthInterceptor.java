@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import movie_rating_backend.annotation.AuthRequired;
 import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.UserContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -16,6 +17,9 @@ import java.lang.reflect.Method;
 @Slf4j
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -48,7 +52,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         token = token.substring(7);
-        Integer userId = JwtUtil.getUserId(token);
+        Integer userId = jwtUtil.getUserId(token);
 
         if (authRequired.admin()) {
             // 检查用户是否为管理员

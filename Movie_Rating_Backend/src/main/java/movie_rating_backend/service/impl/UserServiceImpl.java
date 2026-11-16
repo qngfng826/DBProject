@@ -9,6 +9,7 @@ import movie_rating_backend.mapper.UserMapper;
 import movie_rating_backend.service.UserService;
 import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.Result;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
@@ -18,6 +19,9 @@ import java.util.Map;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * 登录校验逻辑
@@ -47,7 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             role = "admin";
         }
 
-        String token = JwtUtil.createToken(user.getUserId(), user.getUsername(), role);
+        String token = jwtUtil.createToken(user.getUserId(), user.getUsername(), role);
 
         // 4. 将 token 返回给前端
         Map<String, Object> data = new HashMap<>();
