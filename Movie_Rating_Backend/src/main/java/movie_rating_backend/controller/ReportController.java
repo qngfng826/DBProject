@@ -25,9 +25,12 @@ public class ReportController {
             "剧情", "喜剧", "动作", "爱情", "科幻", "动画", "悬疑", "犯罪", "奇幻"
     ));
 
-    // 9 个类型的派生表（UNION ALL），供汇总 SQL 复用
+    // 9 个类型的派生表（UNION ALL），供汇总 SQL 复用。
+    // 显式 COLLATE utf8mb4_general_ci：TiDB 会把派生表字面量视为隐式排序规则，
+    // 与 movie1707.Genre 列（utf8mb4_general_ci）做 LIKE 时会报 1267 Illegal mix of collations；
+    // MySQL 8 本地虽能自动强制转换，显式声明可保证两端行为一致。
     private static final String GENRE_VALUES = MOVIE_GENRES.stream()
-            .map(genre -> "SELECT '" + genre + "' AS Genre")
+            .map(genre -> "SELECT '" + genre + "' COLLATE utf8mb4_general_ci AS Genre")
             .collect(Collectors.joining(" UNION ALL "));
 
     @GetMapping("/genre-summary")
