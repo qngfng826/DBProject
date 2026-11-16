@@ -38,10 +38,10 @@ git push origin main
 1. 打开 <https://tidbcloud.com>，用邮箱或 Google/GitHub 注册（免费，不用信用卡）。
 2. 创建 **Serverless Cluster**：选择离你近的区域（如 Singapore / Tokyo），其余默认。免费额度 5GB 存储 + 每月 5000 万请求单位，对本项目绰绰有余。
 3. 集群创建后，进入 **Cluster → Connect**，记下连接信息：
-   - Host gateway01.ap-southeast-1.prod.aws.tidbcloud.com
-   - Port 4000
-   - Username 3hK1ukcKQmUMPqj.root
-   - 密码：k9TmDUu8ioTeazJT
+   - Host：`<你的 Host>`（形如 `gateway01.<region>.prod.aws.tidbcloud.com`）
+   - Port：`4000`
+   - Username：`<你的用户名>`（形如 `<集群前缀>.root`）
+   - 密码：在 TiDB Cloud 控制台自行设置/重置——**只保存在 TiDB Cloud 与 Render 环境变量中，不要写入任何文档或仓库**
 4. 导入数据（两种方式任选）：
 
    **方式 A（推荐，一条命令）**：本机就有 mysql 客户端，直接把完整的 `deploy/init.sql` 导入 TiDB（必须走 TLS）。注意用 **8.4.8 客户端**（9.6 客户端缺 TiDB 需要的认证插件，会报 2059 错误）：
@@ -70,16 +70,18 @@ git push origin main
    - **Root Directory**：`Movie_Rating_Backend`（重要，Dockerfile 在这个子目录里）
    - **Runtime**：Docker（Render 会自动识别 Dockerfile）
    - **Instance Type**：Free
-4. 展开 **Environment Variables**，添加 3 个变量（对应第 1 步记下的信息）：
+4. 展开 **Environment Variables**，添加 4 个变量：
 
    | Key | Value |
    |-----|-------|
    | `DB_URL` | `jdbc:mysql://<Host>:4000/movie_info1707?sslMode=VERIFY_IDENTITY&enabledTLSProtocols=TLSv1.2,TLSv1.3&useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true` |
    | `DB_USERNAME` | `<Username>` |
    | `DB_PASSWORD` | `<你设置的 TiDB SQL 密码>` |
+   | `JWT_SECRET` | `<强随机密钥，至少 32 字符，仅保存在 Render 环境变量>` |
 
    > 注意 `DB_URL` 里把 `<Host>` 换成你的实际 Host；`sslMode=VERIFY_IDENTITY` 如果构建后连接报证书错误，可降级为 `REQUIRED`。
    > 不需要设置 `PORT`，Render 会自动注入，后端已配置读取 `${PORT:8088}`。
+   > **`JWT_SECRET` 为必填**：缺失时后端启动即失败（fail-fast），可用 `openssl rand -hex 32` 生成强随机值。
 
 5. 点 **Create Web Service**，等第一次构建（Maven 打包约 5~10 分钟）。部署成功后会得到后端地址，形如：
    `https://<你的服务名>.onrender.com`
@@ -125,10 +127,11 @@ git push origin main
 - **后端能启动但接口报数据库错误**：检查 `DB_URL/DB_USERNAME/DB_PASSWORD` 是否与 TiDB Cloud Connect 页面完全一致，重点确认 Host、端口 4000、用户名带 `.root` 后缀。
 - **前端能打开但请求全失败**：检查 Cloudflare Pages 的 `VITE_API_BASE_URL` 是否以后端地址 + `/api` 结尾（后端接口路径本身就带 `/api` 前缀，不要再拼一层）。
 - **TiDB 免费额度**：Serverless 每月 5000 万 request units，个人课设用量远用不完；超限时升级付费前会有邮件提醒。
-- **安全提示**：仓库历史提交中曾包含本地数据库明文密码（现默认值仍在 `application.yml` 中）。该仓库若是公开的，建议顺手改掉本地 MySQL 的 root 密码，或把仓库设为私有。
+- **安全提示**：2026-11-16 已完成凭据轮换——git 历史中曾包含的本地 MySQL 密码与 TiDB 密码均已作废，历史旧值一律视为失效（仓库历史未重写）；JWT 密钥已改为仅通过环境变量注入，源码不再包含任何默认密钥；本地开发凭据存放于不入库的 `application-local.yml`（模板见 `application-local.yml.example`）。
 
 ## 本地部署不受影响的说明
 
-- `application.yml` 所有新配置都是 `${环境变量:本地默认值}` 形式，不设环境变量即用默认值。
+- `application.yml` 中数据库地址/用户名仍是 `${环境变量:本地默认值}` 形式；数据库密码与 JWT 密钥**没有默认值**：复制 `application-local.yml.example` 为 `application-local.yml`（已被 .gitignore 忽略）填入本地值即可，不创建该文件且未设环境变量时后端会因数据库/密钥缺失而启动失败。
+- 环境变量（`DB_PASSWORD` / `JWT_SECRET`）优先级高于 `application-local.yml`。
 - 前端 `request.js` 的 `baseURL` 未设 `VITE_API_BASE_URL` 时回退为 `/api`，vite 开发代理照常工作。
 - Dockerfile 只在 Docker 构建时使用，与 `mvnw spring-boot:run` 本地启动方式互不影响。
