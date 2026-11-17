@@ -1,7 +1,7 @@
 package movie_rating_backend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import movie_rating_backend.entity.MovieRating;
+import movie_rating_backend.DTO.UserRatingDTO;
 import movie_rating_backend.entity.Rating;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -15,7 +15,7 @@ public interface RatingMapper extends BaseMapper<Rating> {
 
     Rating getUserMovieRating(Integer userId, Integer movieId);
 
-    List<MovieRating> getUserRatings(Integer userId);
+    List<UserRatingDTO> getUserRatings(Integer userId);
 
     Double getAverageRating(Integer movieId);
 

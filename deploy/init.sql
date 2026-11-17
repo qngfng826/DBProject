@@ -68,8 +68,8 @@ CREATE TABLE `comment1707` (
   PRIMARY KEY (`CommentID`),
   KEY `UserID` (`UserID`),
   KEY `MovieID` (`MovieID`),
-  CONSTRAINT `comment1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`),
-  CONSTRAINT `comment1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`)
+  CONSTRAINT `comment1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`) ON DELETE CASCADE,
+  CONSTRAINT `comment1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -218,8 +218,8 @@ CREATE TABLE `rating1707` (
   PRIMARY KEY (`RatingID`),
   UNIQUE KEY `UserID` (`UserID`,`MovieID`),
   KEY `MovieID` (`MovieID`),
-  CONSTRAINT `rating1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`),
-  CONSTRAINT `rating1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`),
+  CONSTRAINT `rating1707_ibfk_1` FOREIGN KEY (`UserID`) REFERENCES `user1707` (`UserID`) ON DELETE CASCADE,
+  CONSTRAINT `rating1707_ibfk_2` FOREIGN KEY (`MovieID`) REFERENCES `movie1707` (`MovieID`) ON DELETE CASCADE,
   CONSTRAINT `rating1707_chk_1` CHECK ((`Score` between 1 and 10))
 ) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

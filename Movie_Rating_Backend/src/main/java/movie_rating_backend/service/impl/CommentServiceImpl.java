@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import movie_rating_backend.entity.Comment;
 import movie_rating_backend.mapper.CommentMapper;
 import movie_rating_backend.service.CommentService;
+import movie_rating_backend.DTO.UserCommentDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import movie_rating_backend.entity.MovieComment;
 
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
@@ -21,7 +21,7 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     @Override
-    public List<MovieComment> getUserComments(Integer userId) {
+    public List<UserCommentDTO> getUserComments(Integer userId) {
         return commentMapper.getUserComments(userId);
     }
 }

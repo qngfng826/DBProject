@@ -20,7 +20,8 @@
         JOIN movie1707 ON rating1707.MovieID = movie1707.MovieID
         WHERE UserID = #{userId} AND movie1707.MovieID = #{movieId}
     </select>
-    <select id="getUserRatings" resultType="movie_rating_backend.entity.MovieRating">
+    <!-- 我的评分：显式列投影，承接 movie_rating_backend.DTO.UserRatingDTO -->
+    <select id="getUserRatings" resultType="movie_rating_backend.DTO.UserRatingDTO">
         SELECT
         r.RatingID as ratingId,
         r.UserID as userId,

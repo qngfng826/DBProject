@@ -1,7 +1,7 @@
 package movie_rating_backend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import movie_rating_backend.entity.MovieRating;
+import movie_rating_backend.DTO.UserRatingDTO;
 import movie_rating_backend.entity.Rating;
 import java.util.List;
 
@@ -12,7 +12,7 @@ public interface RatingService extends IService<Rating> {
 
     Rating getUserMovieRating(Integer userId, Integer movieId);
 
-    List<MovieRating> getUserRatings(Integer userId);
+    List<UserRatingDTO> getUserRatings(Integer userId);
 
     Double getAverageRating(Integer movieId);
 

@@ -1,8 +1,8 @@
 package movie_rating_backend.controller;
 
 import movie_rating_backend.annotation.AuthRequired;
+import movie_rating_backend.DTO.UserCommentDTO;
 import movie_rating_backend.entity.Comment;
-import movie_rating_backend.entity.MovieComment;
 import movie_rating_backend.mapper.CommentMapper;
 import movie_rating_backend.utils.Result;
 import movie_rating_backend.service.CommentService;
@@ -111,12 +111,12 @@ public class CommentController {
 
     // 获取某用户的所有评论
     @GetMapping("/user")
-    public Result<List<MovieComment>> getUserComments(HttpServletRequest request) {
+    public Result<List<UserCommentDTO>> getUserComments(HttpServletRequest request) {
         try {
             String token = request.getHeader("Authorization");
             if (token == null) return Result.error(401, "未登录");
             Integer userId = jwtUtil.getUserId(token);
-            List<MovieComment> list = commentService.getUserComments(userId);
+            List<UserCommentDTO> list = commentService.getUserComments(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error(500, e.getMessage());

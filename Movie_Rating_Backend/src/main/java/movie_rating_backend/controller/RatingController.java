@@ -1,8 +1,8 @@
 package movie_rating_backend.controller;
 
 import movie_rating_backend.annotation.AuthRequired;
+import movie_rating_backend.DTO.UserRatingDTO;
 import movie_rating_backend.entity.Rating;
-import movie_rating_backend.entity.MovieRating;
 import movie_rating_backend.utils.Result; // 假设你的统一返回类叫 Result，如果叫其他名请改一下
 import movie_rating_backend.service.RatingService;
 import movie_rating_backend.utils.UserContextHolder;
@@ -87,9 +87,9 @@ public class RatingController {
     // 获取当前用户的所有评分
     @GetMapping("/user")
     @AuthRequired
-    public Result<List<MovieRating>> getUserRatings() {
+    public Result<List<UserRatingDTO>> getUserRatings() {
         Integer userId = UserContextHolder.getUserId();
-        List<MovieRating> list = ratingService.getUserRatings(userId);
+        List<UserRatingDTO> list = ratingService.getUserRatings(userId);
         return Result.success(list);
     }
 }

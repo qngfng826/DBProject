@@ -1,7 +1,7 @@
 package movie_rating_backend.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import movie_rating_backend.entity.MovieRating;
+import movie_rating_backend.DTO.UserRatingDTO;
 import movie_rating_backend.entity.Rating;
 import movie_rating_backend.mapper.RatingMapper;
 import movie_rating_backend.service.RatingService;
@@ -38,7 +38,7 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
         return ratingMapper.getUserMovieRating(userId, movieId);
     }
     @Override
-    public List<MovieRating> getUserRatings(Integer userId) {
+    public List<UserRatingDTO> getUserRatings(Integer userId) {
         return ratingMapper.getUserRatings(userId);
     }
     @Override

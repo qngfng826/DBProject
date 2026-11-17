@@ -15,9 +15,13 @@
         ORDER BY c.CommentTime DESC
     </select>
 
-    <!-- 查询某用户的所有评论（带电影标题） -->
-    <select id="getUserComments" resultType="movie_rating_backend.entity.MovieComment">
-        SELECT m.*, c.CommentID, c.UserID, c.Content, c.CommentTime
+    <!-- 查询某用户的所有评论（带电影信息）：显式列投影，承接 movie_rating_backend.DTO.UserCommentDTO -->
+    <select id="getUserComments" resultType="movie_rating_backend.DTO.UserCommentDTO">
+        SELECT m.MovieID as movieId, m.Title as title, m.ReleaseYear as releaseYear,
+               m.Duration as duration, m.Genre as genre, m.Language as language,
+               m.Country as country, m.Synopsis as synopsis, m.Rating as rating,
+               m.PosterUrl as posterUrl, m.JumpUrl as jumpUrl,
+               c.CommentID as commentId, c.UserID as userId, c.Content as content, c.CommentTime as commentTime
         FROM comment1707 c
         JOIN movie1707 m ON c.MovieID = m.MovieID
         WHERE c.UserID = #{userId}

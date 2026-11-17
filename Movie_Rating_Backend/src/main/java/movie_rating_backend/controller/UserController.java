@@ -63,11 +63,11 @@ public class UserController {
         return success ? Result.success("更新成功") : Result.error(500, "更新失败");
     }
 
-    // 按 id 删除用户（供后台用户管理使用）
+    // 按 id 删除用户（供后台用户管理使用）：级联清评论/评分并补偿重算电影均分
     @DeleteMapping("/{id}")
     @AuthRequired(admin = true)
     public Result<String> delete(@PathVariable Integer id) {
-        boolean success = userService.removeById(id);
+        boolean success = userService.deleteUserWithCleanup(id);
         return success ? Result.success("删除成功") : Result.error(500, "删除失败");
     }
 }
