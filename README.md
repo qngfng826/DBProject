@@ -1,5 +1,7 @@
 # 电影评分系统 · MovieRating
 
+[![CI](https://github.com/qngfng826/DBProject/actions/workflows/ci.yml/badge.svg)](https://github.com/qngfng826/DBProject/actions/workflows/ci.yml)
+
 > 数据库课程设计作品，已打磨为**全栈 + 免费云部署**的个人项目：Spring Boot 单体后端 + Vue 3 前端，覆盖电影浏览、评分、评论、统计报表与完整管理后台。
 
 **在线体验**：<https://movie-rating.pages.dev> —— 前端托管于 Cloudflare Pages，后端为 Render 免费实例（首次访问冷启动约 30 秒）。

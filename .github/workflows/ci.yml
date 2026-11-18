@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# 最小权限：工作流只读仓库内容
+permissions:
+  contents: read
+
+# 同一分支的新推送取消进行中的旧运行，节省 Actions 配额
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend · mvn package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Movie_Rating_Backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+          cache: maven
+
+      # 集成测试走 H2 内存库（src/test/resources/application-test.yml），
+      # 无需数据库、无需任何 Secrets
+      - name: Build and test
+        run: mvn -B -ntp package
+
+  frontend:
+    name: Frontend · npm run build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: movie-rating-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: movie-rating-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
