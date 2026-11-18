@@ -52,7 +52,17 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         token = token.substring(7);
-        Integer userId = jwtUtil.getUserId(token);
+        Integer userId;
+        try {
+            userId = jwtUtil.getUserId(token);
+        } catch (Exception e) {
+            // token 非法或已过期：统一返回 401，与 SecurityConfig 的未认证响应保持一致
+            log.warn("token 无效或已过期");
+            response.setStatus(401);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401, \"message\":\"未登录或登录失效\"}");
+            return false;
+        }
 
         if (authRequired.admin()) {
             // 检查用户是否为管理员

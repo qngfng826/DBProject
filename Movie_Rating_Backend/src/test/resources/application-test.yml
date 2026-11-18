@@ -1,0 +1,16 @@
+# 测试专用配置：H2 内存库（MySQL 兼容模式），不依赖本地/生产 MySQL。
+# DATABASE_TO_LOWER=TRUE 让未加引号的标识符统一转小写，与 MyBatis 生成的 SQL 对齐。
+spring:
+  datasource:
+    url: jdbc:h2:mem:movie_rating_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-test.sql
+
+jwt:
+  # 测试专用密钥（与生产/本地密钥无关，仅用于 JwtUtilTest / AuthChainTest 内构造 token）
+  secret: test-only-jwt-secret-0123456789abcdef0123456789abcdef
