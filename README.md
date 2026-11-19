@@ -139,6 +139,34 @@ npm run dev
 - 前端 GET 请求 5 分钟内存缓存，写操作自动失效
 - 热度榜由数据库视图计算，避免应用层全量遍历
 
+### 压测结果
+
+基于 [docs/jmeter/movie-rating-load-test.jmx](docs/jmeter/movie-rating-load-test.jmx)（JMeter 5.6.3）对 4 个热点读接口做混合负载：电影列表 `/api/movie/list`、电影详情 `/api/movie/13`、热门榜 `/api/movie/hot`、统计报表 `/api/report/genre-summary`。
+
+- **环境**：Windows 本机，后端 `java -jar target/movie-rating-backend-*.jar`（JDK 21，默认堆）+ 本地 MySQL 8；数据集 14 部影片 / 20 条评分 / 15 条评论 / 29 位演员 / 12 位导演（小数据集，结果主要反映应用层与索引路径开销，不代表生产 TiDB 时延）
+- **场景**：每档 ramp-up 10s + 采样 60s，4 个接口在同线程内轮转，仅读流量；响应断言 `"code":200`，错误率按断言统计
+- **说明**：生产 Render 免费实例（512MB、无访问休眠、冷启动约 30s）不用于基准测试，未纳入本表；JMeter 与被压服务同机运行，属单机上限观测
+
+**分接口明细（50 线程）**
+
+| 接口 | 样本数 | TPS | 平均响应 (ms) | P95 (ms) | P99 (ms) | 错误率 |
+|---|---:|---:|---:|---:|---:|---:|
+| `/api/movie/list` | 172,020 | 2,871 | 3.5 | 9 | 13 | 0% |
+| `/api/movie/13`（详情，多表 JOIN） | 172,012 | 2,872 | 3.8 | 9 | 14 | 0% |
+| `/api/movie/hot` | 172,000 | 2,872 | 3.8 | 9 | 14 | 0% |
+| `/api/report/genre-summary`（2 条聚合 SQL） | 171,983 | 2,872 | 4.7 | 11 | 15 | 0% |
+| **合计** | **688,015** | **11,482** | **3.9** | **10** | **14** | **0%** |
+
+**并发梯度**
+
+| 并发线程 | 总样本数 | TPS | 平均响应 (ms) | P95 (ms) | P99 (ms) | 错误率 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 20 | 676,827 | 11,300 | 1.6 | 3 | 4 | 0% |
+| 50 | 688,015 | 11,482 | 3.9 | 10 | 14 | 0% |
+| 100 | 648,531 | 10,833 | 8.4 | 21 | 33 | 0% |
+
+20 → 50 线程吞吐小幅上升后进入平台（约 1.1 万 TPS），100 线程时吞吐不再增长、P95 升至 21ms：本地 JMeter 与被压服务同机竞争 CPU/IO，属于单机环境的上限观测；接口本身在 50 线程内保持 P95 ≤ 11ms、零错误。
+
 ## 项目结构
 
 ```
@@ -149,6 +177,7 @@ DatabaseProject/
 │   └── Dockerfile
 ├── movie-rating-frontend/         # Vue 3 前端（用户端 + 管理后台）
 │   └── src/{api,components,router,stores,views}
+├── docs/                          # 截图（screenshots/）与 JMeter 压测计划（jmeter/）
 ├── deploy/                        # 建库脚本与种子数据（schema.sql / init.sql / csv）
 ├── DatabaseIndexes.sql            # 索引优化脚本
 ├── DEPLOY.md                      # 免费云部署指南
@@ -163,9 +192,9 @@ DatabaseProject/
 
 ## TODO 路线图
 
-- [ ] 单元 / 集成测试（鉴权链 + 核心 CRUD）
-- [ ] GitHub Actions CI（后端构建 + 前端构建）
-- [ ] JMeter 压测数据回填（TPS / P95 / 错误率）
+- [x] 单元 / 集成测试（鉴权链 + 核心 CRUD，24 例）
+- [x] GitHub Actions CI（后端构建 + 前端构建）
+- [x] JMeter 压测数据回填（TPS / P95 / 错误率）
 - [ ] Redis 热点缓存（可选）
 
 ## 文档
