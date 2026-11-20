@@ -12,3 +12,6 @@ logs/
 # 构建产物兜底（前端目录已各自忽略）
 node_modules/
 dist/
+
+# Docker Compose 本地密钥（模板见 .env.example）
+.env

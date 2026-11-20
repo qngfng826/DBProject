@@ -6,7 +6,7 @@
 
 **在线体验**：<https://movie-rating.pages.dev> —— 前端托管于 Cloudflare Pages，后端为 Render 免费实例（首次访问冷启动约 30 秒）。
 
-`Spring Boot 2.7` · `Vue 3` · `MyBatis-Plus` · `Spring Security + JWT` · `MySQL 8 / TiDB` · `Docker` · `ECharts`
+`Spring Boot 2.7` · `Vue 3` · `MyBatis-Plus` · `Spring Security + JWT` · `MySQL 8 / TiDB` · `Redis / Valkey` · `Docker` · `ECharts`
 
 ## 界面预览
 
@@ -42,7 +42,8 @@
 | 层 | 技术 |
 | --- | --- |
 | 后端 | Spring Boot 2.7.18 · Spring Security · MyBatis-Plus 3.5.3.1 · JWT（auth0 java-jwt 3.18.2）· Lombok（编译 target Java 8，运行 Java 11） |
-| 数据库 | MySQL 8（本地） / TiDB Cloud Serverless（生产，MySQL 兼容） |
+| 数据库 | MySQL 8.x（本地：Docker 用 8.4 LTS / 本机服务 9.6） / TiDB Cloud Serverless（生产，MySQL 兼容） |
+| 缓存 | Redis 协议（Valkey 8）：本地 Docker Compose / 生产 Render Free Key Value（可选）；空值缓存 + SETNX 互斥锁 + TTL 抖动 + 熔断降级 |
 | 前端 | Vue 3.4 · Vite 5.1 · Element Plus 2.14 · Pinia 2.1 · Vue Router 4.3 · Axios · ECharts 5.5 · dayjs |
 | 部署 | Docker 多阶段构建 · Cloudflare Pages · Render · UptimeRobot 保活 |
 
@@ -53,6 +54,7 @@ flowchart LR
     U[用户浏览器] -->|静态资源| CF[Cloudflare Pages<br/>Vue 前端 dist]
     CF -->|/api 请求| R[Render<br/>Spring Boot Docker]
     R -->|JDBC + TLS| DB[(TiDB Cloud Serverless<br/>movie_info1707)]
+    R -.->|可选：热点缓存| KV[(Render Free Key Value<br/>Valkey 8 / 25MB)]
     UH[UptimeRobot<br/>每 5 分钟] -.->|保活| R
 
     subgraph 本地开发
@@ -112,6 +114,29 @@ npm run dev
 - 注册账号即可浏览、评分、评论
 - 管理后台权限按用户名判定：`username` 为 `admin` 即管理员（`admin` 为保留用户名，不可自行注册；种子数据中已内置该账号，密码为 BCrypt 哈希，可在本地数据库按需重置）
 
+### 5. Docker 一键部署（本地全栈）
+
+一条命令把 **MySQL 8.4 + Valkey + 后端 + 前端 Nginx** 整套跑起来，不依赖本机安装的 MySQL：
+
+```bash
+cd DatabaseProject
+cp .env.example .env        # 填入 MYSQL_ROOT_PASSWORD / JWT_SECRET（.env 不入库）
+docker compose up -d --build
+```
+
+- 访问入口：**http://localhost:8080**（Nginx 托管前端静态文件，`/api` 反代到后端容器）
+- 服务与端口：
+
+| 服务 | 镜像 | 宿主机端口 | 说明 |
+|---|---|---|---|
+| frontend | node:20 构建产物 + nginx:alpine | **8080** | 访问入口 |
+| backend | 多阶段 Maven 构建 → eclipse-temurin:11-jre | 8088 | /api 直连调试用 |
+| mysql | mysql:8.4 LTS | **3307** | 避开本机 MySQL96(3306)；首次启动自动导入 `deploy/init.sql` |
+| redis | valkey/valkey:8-alpine | 6379 | 热点缓存（`CACHE_ENABLED=true`） |
+
+- 常用命令：`docker compose logs -f backend` 看日志；`docker compose down` 停止；`docker compose down -v` 连数据卷一起清空（下次启动重新导入种子数据）
+- 缓存开关：`.env` 里改 `CACHE_ENABLED` 后执行 `docker compose up -d backend` 重建即可
+
 ## 部署
 
 生产架构与完整步骤见 **[DEPLOY.md](DEPLOY.md)**，要点：
@@ -120,6 +145,7 @@ npm run dev
 | --- | --- |
 | `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | TiDB 连接信息（密码只存放于 Render 环境变量） |
 | `JWT_SECRET` | **必填**，强随机密钥，缺失时后端启动失败（fail-fast） |
+| `REDIS_URL` / `CACHE_ENABLED` | 可选：Render Free Key Value 内部 URL 与热点缓存开关（默认关闭） |
 
 前端 Cloudflare Pages 侧配置 `VITE_API_BASE_URL`（后端地址 + `/api`）与 `NODE_VERSION=20`。推送 `main` 即自动重新部署。
 
@@ -138,6 +164,7 @@ npm run dev
 - 列表接口全部分页，避免全表扫描
 - 前端 GET 请求 5 分钟内存缓存，写操作自动失效
 - 热度榜由数据库视图计算，避免应用层全量遍历
+- 可选 Redis 热点缓存（热门榜 / 详情 / 列表 / 搜索 / 报表），Redis 不可用时自动熔断直查数据库
 
 ### 压测结果
 
@@ -167,19 +194,54 @@ npm run dev
 
 20 → 50 线程吞吐小幅上升后进入平台（约 1.1 万 TPS），100 线程时吞吐不再增长、P95 升至 21ms：本地 JMeter 与被压服务同机竞争 CPU/IO，属于单机环境的上限观测；接口本身在 50 线程内保持 P95 ≤ 11ms、零错误。
 
+### 热点缓存（可选）
+
+热点读接口支持 Redis（Valkey）缓存，**默认关闭**；通过 `CACHE_ENABLED=true` + `REDIS_URL` 开启。Redis 不可用时会自动熔断 30 秒并直查数据库，不影响接口可用性。
+
+- **缓存范围**：热门榜 `/api/movie/hot`、详情 `/api/movie/{id}`（只缓存共享部分，用户评分命中后按索引实时补查）、列表 `/api/movie/list`、无关键词搜索 `/api/movie/search`、报表 `/api/report/genre-summary`
+- **一致性**：评分 / 评论 / 电影管理端 / 用户删除写操作都在**事务提交后**（afterCommit）失效关联 key；列表与搜索用版本号整体失效，避免 `SCAN/KEYS`
+- **三防**：不存在的电影 ID 缓存空值（60s，防穿透）、热点 key 重建用 `SETNX` 互斥锁 + 双重检查（防击穿）、TTL ±10% 随机抖动（防雪崩）
+- **部署**：Docker 全栈（见「Docker 一键部署」）默认开启；裸机开发用本地 Valkey；生产可用 Render Free Key Value（25MB、50 连接、同区私有网络、¥0）或 Upstash Free（`rediss://`，50 万命令/月）
+- **本地验证**：
+
+```bash
+docker compose up -d
+cd Movie_Rating_Backend && CACHE_ENABLED=true ./mvnw spring-boot:run
+redis-cli --scan --pattern 'mr:*'
+redis-cli INFO stats
+```
+
+**A/B 压测（Docker 全栈，50 线程 / 60s / 4 接口混合负载，JMeter 5.6.3）**
+
+| 指标 | 基线（缓存关） | 缓存开 | 变化 |
+|---|---:|---:|---|
+| 总 TPS | 8,468 | 13,038 | **+54%** |
+| 平均响应 | 5.4ms | 3.5ms | -35% |
+| P95 | 16ms | 5ms | **-69%** |
+| P99 | 22ms | 7ms | -68% |
+| DB SELECT（60s 内） | 634,345 | **1** | -99.9998% |
+| 错误率 | 0% | 0% | — |
+
+- 容器化栈里 MySQL 是瓶颈（单实例 WSL2），缓存把它移出热路径后吞吐直接上了一个台阶；裸机场景（DB 非瓶颈）收益主要体现为 DB 查询量与 TiDB RU 消耗下降
+- 预热后 60s 全程 0 次 miss（命中率 ~100%）；列表/搜索每次请求多一次版本号 GET，是列表接口提升较小（5.0→4.6ms）的原因
+- 分接口：detail 5.2→3.1ms（P95 14→4）、hot 5.0→3.1ms（P95 14→4）、report 6.3→3.0ms（P95 17→4）、list 5.0→4.6ms（P95 14→7）
+
 ## 项目结构
 
 ```
 DatabaseProject/
 ├── Movie_Rating_Backend/          # Spring Boot 后端（8 个 Controller / MyBatis-Plus）
 │   ├── src/main/java/movie_rating_backend/
-│   ├── application-local.yml.example   # 本地凭据模板（真实文件不入库）
-│   └── Dockerfile
+│   ├── Dockerfile / .dockerignore # 多阶段构建（Maven → JRE 11）
+│   └── application-local.yml.example   # 本地凭据模板（真实文件不入库）
 ├── movie-rating-frontend/         # Vue 3 前端（用户端 + 管理后台）
+│   ├── Dockerfile / nginx.conf    # 容器内 Nginx 托管 dist 并反代 /api
 │   └── src/{api,components,router,stores,views}
 ├── docs/                          # 截图（screenshots/）与 JMeter 压测计划（jmeter/）
 ├── deploy/                        # 建库脚本与种子数据（schema.sql / init.sql / csv）
 ├── DatabaseIndexes.sql            # 索引优化脚本
+├── docker-compose.yml             # 本地全栈一键部署（MySQL 8.4 + Valkey + 后端 + 前端）
+├── .env.example                   # compose 密钥模板（.env 不入库）
 ├── DEPLOY.md                      # 免费云部署指南
 └── README.md
 ```
@@ -188,14 +250,16 @@ DatabaseProject/
 
 - **免费实例冷启动**：Render 免费额度无访问约 15 分钟后休眠，冷启动约 30 秒；生产环境用 UptimeRobot 每 5 分钟保活
 - **TiDB 限制**：不支持触发器 / 存储过程，生产相关逻辑已在代码层等效实现
-- **凭据安全**：请勿将任何密码 / 密钥提交到仓库；本地使用 `application-local.yml`
+- **MySQL 9.6 与 8.4 的关系**：两条并行发布线——8.4 是 LTS（长期支持），9.x 是 Innovation 创新版（约一年生命周期），并非升级替代关系；项目 SQL 两者都兼容（本机 3306 跑的即 9.6），Docker 部署统一选 8.4 LTS。9.x 的 mysql 客户端移除了 `mysql_native_password` 插件，连 TiDB 需改用 8.4.8 客户端
+- **缓存开关**：`CACHE_ENABLED` 默认 `false`，关闭时使用 NoOp 实现、不建立任何 Redis 连接；生产开启前先确认 Render Key Value 与 Web Service 同区域
+- **凭据安全**：请勿将任何密码 / 密钥提交到仓库；本地使用 `application-local.yml`，Docker Compose 使用 `.env`
 
 ## TODO 路线图
 
-- [x] 单元 / 集成测试（鉴权链 + 核心 CRUD，24 例）
+- [x] 单元 / 集成测试（鉴权链 + 核心 CRUD + 缓存，42 例）
 - [x] GitHub Actions CI（后端构建 + 前端构建）
 - [x] JMeter 压测数据回填（TPS / P95 / 错误率）
-- [ ] Redis 热点缓存（可选）
+- [x] Redis 热点缓存（可选，默认关闭）
 
 ## 文档
 

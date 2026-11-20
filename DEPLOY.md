@@ -13,6 +13,8 @@ Render 免费实例（Spring Boot 后端，Docker 部署）
    │  JDBC + TLS
    ▼
 TiDB Cloud Serverless（MySQL 兼容云数据库，5GB 免费）
+
+Render 免费实例 ──(可选) 内部 redis://──▶ Render Free Key Value（Valkey 8 / 25MB，热点缓存）
 ```
 
 - **UptimeRobot**（免费）每 5 分钟 ping 一次后端，避免 Render 免费实例 15 分钟无访问后休眠（休眠后冷启动约 1 分钟）。
@@ -112,6 +114,25 @@ git push origin main
    - URL：`https://<你的服务名>.onrender.com/`（或上面第 2.6 步的接口地址）
 3. 保存。此后 Render 实例基本不会休眠。
 
+## 第 5 步：热点缓存（可选，Render Free Key Value）
+
+> 缓存默认关闭（`CACHE_ENABLED=false`），不影响现有部署；以下步骤全部使用免费额度。
+
+1. 在 Render 控制台 **New → Key Value**，选择 **Free** 实例；**Region 必须与后端 Web Service 相同**（内部 URL 只在同区域私有网络可用）。
+2. 创建后复制 **Internal Redis URL**（形如 `redis://red-xxxx:6379`，默认无密码）。
+3. 打开后端 Web Service → **Environment**，新增：
+
+   | Key | Value |
+   |-----|-------|
+   | `REDIS_URL` | `<Internal Redis URL>` |
+   | `CACHE_ENABLED` | `true` |
+
+4. 在 Key Value 设置里把驱逐策略设为 **`allkeys-lru`**（所有缓存 key 都带 TTL，双保险）。
+5. 保存并等待重新部署。连续访问两次 `/api/movie/hot`，在 Key Value 指标页应能看到命令数增长；`/api/movie/list`、`/api/movie/search`、`/api/movie/{id}`、`/api/report/genre-summary` 同理。
+6. **限制**：Free Key Value 为 25MB / 50 连接 / 无持久化（重启丢数据，缓存可接受）；仅作缓存，不要存业务唯一数据。
+7. **回滚**：把 `CACHE_ENABLED` 改回 `false` 并重新部署即可，无需回滚代码。
+8. **备选 Upstash Free**：若 Render 当前区域没有 Free Key Value，可在 <https://upstash.com> 创建免费 Redis（250MB、50 万命令/月），选择离 Render 最近的区域；环境变量 `REDIS_URL=rediss://default:<TOKEN>@<HOST>:<PORT>`（`rediss://` 会自动启用 TLS，也可显式设置 `REDIS_SSL=true`）。免费档仅适合低流量，JMeter 压测请打本地 Docker Valkey，不要打云实例。
+
 ## 日常更新
 
 改完代码正常 `git push`，Render 和 Cloudflare Pages 会**自动重新部署**，无需手动操作。
@@ -127,11 +148,46 @@ git push origin main
 - **后端能启动但接口报数据库错误**：检查 `DB_URL/DB_USERNAME/DB_PASSWORD` 是否与 TiDB Cloud Connect 页面完全一致，重点确认 Host、端口 4000、用户名带 `.root` 后缀。
 - **前端能打开但请求全失败**：检查 Cloudflare Pages 的 `VITE_API_BASE_URL` 是否以后端地址 + `/api` 结尾（后端接口路径本身就带 `/api` 前缀，不要再拼一层）。
 - **TiDB 免费额度**：Serverless 每月 5000 万 request units，个人课设用量远用不完；超限时升级付费前会有邮件提醒。
+- **开启缓存后接口报 Redis 连接失败**：先确认 Key Value 与 Web Service 同区域、`REDIS_URL` 用的是 Internal URL；即使 Redis 不可用，后端也会熔断并直查数据库（30 秒后重试），不会中断接口。需要立即恢复可临时设 `CACHE_ENABLED=false`。
+- **Free Key Value 重启后缓存为空**：免费实例无持久化，属于预期行为；缓存会自动按需重建。
 - **安全提示**：2026-11-16 已完成凭据轮换——git 历史中曾包含的本地 MySQL 密码与 TiDB 密码均已作废，历史旧值一律视为失效（仓库历史未重写）；JWT 密钥已改为仅通过环境变量注入，源码不再包含任何默认密钥；本地开发凭据存放于不入库的 `application-local.yml`（模板见 `application-local.yml.example`）。
+
+## 本地 Docker Desktop 全栈部署（可选，与云部署互不影响）
+
+不想装/占用本地 MySQL，或想在本地完整复刻"前端 + 后端 + 数据库 + 缓存"时使用：
+
+```bash
+# 1. 启动 Docker Desktop（应用装在 %LOCALAPPDATA%\Programs\DockerDesktop，等待引擎就绪）
+# 2. 生成密钥并启动
+cd DatabaseProject
+cp .env.example .env      # 填 MYSQL_ROOT_PASSWORD / JWT_SECRET（.env 不入库）
+docker compose up -d --build
+
+# 3. 访问 http://localhost:8080（Nginx 入口，/api 自动反代后端）
+```
+
+| 服务 | 镜像 | 宿主机端口 | 说明 |
+|---|---|---|---|
+| frontend | node:20 构建产物 + nginx:alpine | **8080** | 访问入口，SPA 路由回退 |
+| backend | 多阶段 Maven 构建 → eclipse-temurin:11-jre | 8088 | `/api` 直连调试 |
+| mysql | **mysql:8.4 LTS** | **3307** | 首次启动自动执行 `deploy/init.sql`（8 表 + 种子 + 视图）；不碰本机 MySQL96(3306) / MySQL84(3305) |
+| redis | valkey/valkey:8-alpine | 6379 | 热点缓存（`.env` 里 `CACHE_ENABLED`，默认 true） |
+
+常用命令：
+
+```bash
+docker compose logs -f backend      # 后端日志
+docker compose ps                   # 健康状态
+docker compose down                 # 停止（保留数据卷）
+docker compose down -v              # 连 MySQL 数据卷一起清空，下次启动重新导入种子数据
+```
+
+> **MySQL 9.6 与 8.4 的关系**：两条并行的发布线——8.4 是 LTS（长期支持版），9.x（含本机正在运行的 9.6.0）是 Innovation 创新版（约一年生命周期），互为并行而非升级替代；本项目 SQL 两者都兼容。差异主要在客户端：9.x 的 mysql 客户端移除了 `mysql_native_password` 插件，连 TiDB 会报 2059（见上文"常见问题"），需改用 8.4.8 客户端。Docker 容器统一选 8.4 LTS 求稳。
 
 ## 本地部署不受影响的说明
 
 - `application.yml` 中数据库地址/用户名仍是 `${环境变量:本地默认值}` 形式；数据库密码与 JWT 密钥**没有默认值**：复制 `application-local.yml.example` 为 `application-local.yml`（已被 .gitignore 忽略）填入本地值即可，不创建该文件且未设环境变量时后端会因数据库/密钥缺失而启动失败。
 - 环境变量（`DB_PASSWORD` / `JWT_SECRET`）优先级高于 `application-local.yml`。
+- 缓存开关 `CACHE_ENABLED` 默认 `false`；Docker 全栈部署在 `.env` 里控制（默认 true），本地裸机开发则在 `application-local.yml` 中开启并先 `docker compose up -d redis` 启动 Valkey。
 - 前端 `request.js` 的 `baseURL` 未设 `VITE_API_BASE_URL` 时回退为 `/api`，vite 开发代理照常工作。
 - Dockerfile 只在 Docker 构建时使用，与 `mvnw spring-boot:run` 本地启动方式互不影响。
