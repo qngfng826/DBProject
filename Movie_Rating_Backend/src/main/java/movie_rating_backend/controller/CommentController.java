@@ -7,6 +7,7 @@ import movie_rating_backend.mapper.CommentMapper;
 import movie_rating_backend.utils.Result;
 import movie_rating_backend.service.CommentService;
 import movie_rating_backend.utils.JwtUtil;
+import movie_rating_backend.utils.cache.CacheInvalidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,9 @@ public class CommentController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private CacheInvalidator cacheInvalidator;
+
     // 发表评论
     @PostMapping
     public Result<String> addComment(@RequestBody Comment comment, HttpServletRequest request) {
@@ -41,6 +45,7 @@ public class CommentController {
             comment.setUserId(userId);
 
             commentService.save(comment);
+            cacheInvalidator.onCommentWrite(comment.getMovieId());
             return Result.success("评论成功");
         } catch (Exception e) {
             return Result.error(500, e.getMessage());
@@ -70,6 +75,7 @@ public class CommentController {
             comment.setCommentTime(LocalDateTime.now()); // 更新时间
 
             commentService.updateById(comment);
+            cacheInvalidator.onCommentWrite(existingComment.getMovieId());
             return Result.success("评论更新成功");
         } catch (Exception e) {
             return Result.error(500, e.getMessage());
@@ -92,6 +98,7 @@ public class CommentController {
             }
 
             commentService.removeById(id);
+            cacheInvalidator.onCommentWrite(existingComment.getMovieId());
             return Result.success("评论删除成功");
         } catch (Exception e) {
             return Result.error(500, e.getMessage());
@@ -152,7 +159,11 @@ public class CommentController {
             toUpdate.setCommentId(id);
             toUpdate.setContent(comment.getContent());
             boolean success = commentService.updateById(toUpdate);
-            return success ? Result.success("评论更新成功") : Result.error(500, "评论更新失败");
+            if (success) {
+                cacheInvalidator.onCommentWrite(existing.getMovieId());
+                return Result.success("评论更新成功");
+            }
+            return Result.error(500, "评论更新失败");
         } catch (Exception e) {
             return Result.error(500, e.getMessage());
         }
@@ -167,7 +178,11 @@ public class CommentController {
             if (existing == null) return Result.error(404, "评论不存在");
 
             boolean success = commentService.removeById(id);
-            return success ? Result.success("评论删除成功") : Result.error(500, "评论删除失败");
+            if (success) {
+                cacheInvalidator.onCommentWrite(existing.getMovieId());
+                return Result.success("评论删除成功");
+            }
+            return Result.error(500, "评论删除失败");
         } catch (Exception e) {
             return Result.error(500, e.getMessage());
         }

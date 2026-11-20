@@ -4,19 +4,23 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import movie_rating_backend.DTO.LoginDTO;
+import movie_rating_backend.entity.Comment;
 import movie_rating_backend.entity.Rating;
 import movie_rating_backend.entity.User;
+import movie_rating_backend.mapper.CommentMapper;
 import movie_rating_backend.mapper.RatingMapper;
 import movie_rating_backend.mapper.UserMapper;
 import movie_rating_backend.service.UserService;
 import movie_rating_backend.utils.JwtUtil;
 import movie_rating_backend.utils.Result;
+import movie_rating_backend.utils.cache.CacheInvalidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -33,6 +37,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private RatingMapper ratingMapper;
+
+    @Autowired
+    private CommentMapper commentMapper;
+
+    @Autowired
+    private CacheInvalidator cacheInvalidator;
 
     /**
      * 登录校验逻辑
@@ -86,9 +96,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .map(Rating::getMovieId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+
+        // 评论级联删除同样影响详情的评论数 / 热度榜 / 报表，删前记录受影响电影
+        Set<Integer> commentedMovieIds = commentMapper.selectList(
+                        Wrappers.<Comment>lambdaQuery().eq(Comment::getUserId, userId))
+                .stream()
+                .map(Comment::getMovieId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
         boolean success = this.removeById(userId);
         if (success) {
             ratedMovieIds.forEach(ratingMapper::updateMovieRatingFromAvg);
+            Set<Integer> affectedMovieIds = new HashSet<>(ratedMovieIds);
+            affectedMovieIds.addAll(commentedMovieIds);
+            cacheInvalidator.onUserDelete(affectedMovieIds);
         }
         return success;
     }

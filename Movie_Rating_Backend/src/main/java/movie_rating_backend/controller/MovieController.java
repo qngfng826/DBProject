@@ -1,19 +1,26 @@
 package movie_rating_backend.controller;
 
 import movie_rating_backend.annotation.AuthRequired;
+import movie_rating_backend.DTO.CachedPage;
+import movie_rating_backend.config.CacheProperties;
 import movie_rating_backend.entity.Actor;
 import movie_rating_backend.entity.Director;
 import movie_rating_backend.entity.Movie;
+import movie_rating_backend.entity.Rating;
 import movie_rating_backend.mapper.MovieMapper;
 import movie_rating_backend.service.MovieService;
+import movie_rating_backend.service.RatingService;
 import movie_rating_backend.utils.Result;
 import movie_rating_backend.utils.JwtUtil;
+import movie_rating_backend.utils.cache.CacheClient;
+import movie_rating_backend.utils.cache.CacheKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -32,10 +39,22 @@ public class MovieController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private RatingService ratingService;
+
+    @Autowired
+    private CacheClient cacheClient;
+
+    @Autowired
+    private CacheProperties cacheProperties;
+
     // 1. 获取列表（简单列表，用于某些场景）
     @GetMapping("/list")
     public Result<?> List() {
-        return Result.success(movieService.list());
+        String version = cacheClient.getOrCreateVersion(CacheKeys.MOVIE_VERSION, cacheProperties.versionTtl());
+        List<Movie> movies = cacheClient.getOrLoad(CacheKeys.movieList(version),
+                cacheProperties.listTtl(), movieService::list);
+        return Result.success(movies);
     }
 
     // 2. 搜索接口（配合前端 MovieManage.vue 的 getMovieList -> /movie/search）
@@ -48,6 +67,30 @@ public class MovieController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String sort) {
 
+        // keyword 搜索的 key 空间无界，不缓存；只缓存无关键词的常规分页（限制页大小/页码，防 key 膨胀）
+        boolean cacheable = !StringUtils.hasText(keyword)
+                && page != null && page >= 1 && page <= 20
+                && size != null && size >= 1 && size <= 50;
+        if (!cacheable) {
+            return Result.success(executeSearch(page, size, keyword, genre, year, sort));
+        }
+
+        String version = cacheClient.getOrCreateVersion(CacheKeys.MOVIE_VERSION, cacheProperties.versionTtl());
+        String cacheKey = CacheKeys.movieSearch(version, page, size, genre, year, sort);
+        CachedPage cached = cacheClient.getOrLoad(cacheKey, cacheProperties.searchTtl(),
+                () -> toCachedPage(executeSearch(page, size, keyword, genre, year, sort)));
+        if (cached == null) {
+            return Result.success(executeSearch(page, size, keyword, genre, year, sort));
+        }
+
+        Page<Movie> result = new Page<>(cached.getCurrent(), cached.getSize());
+        result.setRecords(cached.getRecords());
+        result.setTotal(cached.getTotal());
+        return Result.success(result);
+    }
+
+    private IPage<Movie> executeSearch(Integer page, Integer size, String keyword,
+                                       String genre, Integer year, String sort) {
         Page<Movie> pageObj = new Page<>(page, size);
         QueryWrapper<Movie> queryWrapper = new QueryWrapper<>();
 
@@ -74,11 +117,16 @@ public class MovieController {
                 case "year_asc":
                     queryWrapper.orderByAsc("releaseYear");
                     break;
+                default:
+                    break;
             }
         }
 
-        IPage<Movie> result = movieMapper.selectPage(pageObj, queryWrapper);
-        return Result.success(result);
+        return movieMapper.selectPage(pageObj, queryWrapper);
+    }
+
+    private CachedPage toCachedPage(IPage<Movie> page) {
+        return new CachedPage(page.getRecords(), page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     // 3. 详情接口
@@ -93,7 +141,17 @@ public class MovieController {
                 // token 无效或过期，userId 为 null
             }
         }
-        return Result.success(movieService.selectOneById(id, userId));
+
+        // 缓存共享部分（不含 userRating，避免不同用户串号）；用户评分命中后按索引单行查询补上
+        Movie movie = cacheClient.getOrLoad(CacheKeys.movieDetail(id), cacheProperties.detailTtl(),
+                () -> movieService.selectOneById(id, null));
+        if (movie != null && userId != null) {
+            Rating rating = ratingService.getUserMovieRating(userId, id);
+            movie.setUserRating(rating == null || rating.getScore() == null
+                    ? null
+                    : BigDecimal.valueOf(rating.getScore()));
+        }
+        return Result.success(movie);
     }
 
     // 4. 热门电影接口（使用优化后的查询）

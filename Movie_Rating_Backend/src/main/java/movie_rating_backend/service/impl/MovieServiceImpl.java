@@ -11,6 +11,10 @@ import movie_rating_backend.mapper.MovieMapper;
 import movie_rating_backend.mapper.MovieActorMapper;
 import movie_rating_backend.mapper.MovieDirectorMapper;
 import movie_rating_backend.service.MovieService;
+import movie_rating_backend.config.CacheProperties;
+import movie_rating_backend.utils.cache.CacheClient;
+import movie_rating_backend.utils.cache.CacheInvalidator;
+import movie_rating_backend.utils.cache.CacheKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,15 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
 
     @Autowired
     private MovieDirectorMapper movieDirectorMapper;
+
+    @Autowired
+    private CacheClient cacheClient;
+
+    @Autowired
+    private CacheProperties cacheProperties;
+
+    @Autowired
+    private CacheInvalidator cacheInvalidator;
 
     @Override
     public Movie selectOneById(Integer id) {
@@ -73,6 +86,8 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
                 actorRelations.forEach(movieActorMapper::insert);
             }
         }
+
+        cacheInvalidator.onMovieWrite(movie.getMovieId());
     }
 
     /**
@@ -115,6 +130,8 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
                 directorRelations.forEach(movieDirectorMapper::insert);
             }
         }
+
+        cacheInvalidator.onMovieWrite(movieId);
     }
 
     /**
@@ -134,6 +151,8 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
 
         // 3. 删除电影
         movieMapper.deleteById(movieId);
+
+        cacheInvalidator.onMovieWrite(movieId);
     }
 
     /**
@@ -142,6 +161,7 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
      */
     @Override
     public List<Map<String, Object>> getHotMovies() {
-        return movieMapper.getHotMovies();
+        return cacheClient.getOrLoad(CacheKeys.MOVIE_HOT, cacheProperties.hotTtl(),
+                movieMapper::getHotMovies);
     }
 }

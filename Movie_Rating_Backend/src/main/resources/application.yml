@@ -10,6 +10,12 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    # Render Free Key Value 用内部 redis:// URL；Upstash 用 rediss:// 并设置 REDIS_SSL=true
+    url: ${REDIS_URL:redis://localhost:6379}
+    ssl: ${REDIS_SSL:false}
+    timeout: 1s
+    connect-timeout: 1s
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   configuration:
@@ -20,3 +26,16 @@ mybatis-plus:
 jwt:
   # JWT 签名密钥：环境变量 JWT_SECRET 优先；缺失且本地文件未配置时后端启动即失败（fail-fast）
   secret: ${JWT_SECRET:}
+app:
+  cache:
+    # 热点缓存总开关：默认关闭；关闭时 NoOp 实现，不建立任何 Redis 连接
+    enabled: ${CACHE_ENABLED:false}
+    hot-ttl-seconds: 300
+    list-ttl-seconds: 300
+    detail-ttl-seconds: 300
+    search-ttl-seconds: 180
+    report-ttl-seconds: 600
+    null-ttl-seconds: 60
+    version-ttl-seconds: 86400
+    lock-ttl-seconds: 10
+    circuit-open-seconds: 30

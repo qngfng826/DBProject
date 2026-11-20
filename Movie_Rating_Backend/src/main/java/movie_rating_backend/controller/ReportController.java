@@ -1,6 +1,9 @@
 package movie_rating_backend.controller;
 
+import movie_rating_backend.config.CacheProperties;
 import movie_rating_backend.utils.Result;
+import movie_rating_backend.utils.cache.CacheClient;
+import movie_rating_backend.utils.cache.CacheKeys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +23,12 @@ public class ReportController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private CacheClient cacheClient;
+
+    @Autowired
+    private CacheProperties cacheProperties;
+
     // 与前端电影列表保持一致的电影类型列表（List.of 是 Java 9+ API，改用 Java 8 写法）
     private static final List<String> MOVIE_GENRES = Collections.unmodifiableList(Arrays.asList(
             "剧情", "喜剧", "动作", "爱情", "科幻", "动画", "悬疑", "犯罪", "奇幻"
@@ -35,6 +44,13 @@ public class ReportController {
 
     @GetMapping("/genre-summary")
     public Result<Map<String, Object>> getGenreSummary() {
+        // 9 类型聚合 SQL 是当前最重的读查询，结果全局共享且写少，优先缓存
+        Map<String, Object> result = cacheClient.getOrLoad(CacheKeys.REPORT_GENRE,
+                cacheProperties.reportTtl(), this::buildGenreSummary);
+        return Result.success(result);
+    }
+
+    private Map<String, Object> buildGenreSummary() {
         Map<String, Object> result = new HashMap<>();
 
         // 1. 全局统计（1 条 SQL）：全部评分的最高/最低分 + 评论总数
@@ -75,7 +91,7 @@ public class ReportController {
         summary.sort(Comparator.comparingInt(row -> MOVIE_GENRES.indexOf(String.valueOf(row.get("Genre")))));
         result.put("summary", summary);
 
-        return Result.success(result);
+        return result;
     }
 
 }

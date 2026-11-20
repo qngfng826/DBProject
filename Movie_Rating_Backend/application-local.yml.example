@@ -7,5 +7,12 @@
 spring:
   datasource:
     password: <本地 MySQL 密码>
+  redis:
+    # 先执行仓库根目录 docker compose up -d 启动本地 Valkey
+    url: redis://localhost:6379
 jwt:
   secret: <本地开发 JWT 密钥：任意足够长的随机字符串，建议 openssl rand -hex 32 生成>
+app:
+  cache:
+    # 本地不启用缓存时保持 false；执行 docker compose up -d 后改为 true 可验证缓存链路
+    enabled: false

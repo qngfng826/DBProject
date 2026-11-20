@@ -5,6 +5,7 @@ import movie_rating_backend.DTO.UserRatingDTO;
 import movie_rating_backend.entity.Rating;
 import movie_rating_backend.mapper.RatingMapper;
 import movie_rating_backend.service.RatingService;
+import movie_rating_backend.utils.cache.CacheInvalidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +22,21 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
     @Autowired
     private RatingMapper ratingMapper;
 
+    @Autowired
+    private CacheInvalidator cacheInvalidator;
+
     @Override
     public void rateMovie(Rating rating) {
         // 调用 RatingMapper.xml 中定义的 insertOrUpdate 方法
         ratingMapper.insertOrUpdate(rating);
         recalcMovieRating(rating.getMovieId());
+        cacheInvalidator.onRatingWrite(rating.getMovieId());
     }
     @Override
     public void updateRating(Rating rating) {
         ratingMapper.updateRating(rating);
         recalcMovieRating(rating.getMovieId());
+        cacheInvalidator.onRatingWrite(rating.getMovieId());
     }
 
     @Override
@@ -52,6 +58,7 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
         this.removeById(ratingId);
         if (rating != null) {
             recalcMovieRating(rating.getMovieId());
+            cacheInvalidator.onRatingWrite(rating.getMovieId());
         }
     }
     @Override
@@ -60,6 +67,7 @@ public class RatingServiceImpl extends ServiceImpl<RatingMapper, Rating> impleme
                 .eq(Rating::getUserId, userId)
                 .eq(Rating::getMovieId, movieId));
         recalcMovieRating(movieId);
+        cacheInvalidator.onRatingWrite(movieId);
     }
 
     // 等价于原数据库触发器 trg_update_movie_rating_after_*：评分变化后重算电影平均分
