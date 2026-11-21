@@ -25,8 +25,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestURI = request.getRequestURI();
 
-        // 放行登录和注册接口，不需要认证
-        if (requestURI.contains("/api/login") || requestURI.contains("/api/register")) {
+        // 放行登录和注册接口，不需要认证（精确匹配，避免子串误放行）
+        if ("/api/login".equals(requestURI) || "/api/register".equals(requestURI)) {
             return true;
         }
 

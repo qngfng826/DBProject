@@ -45,7 +45,16 @@ public class UserController {
 
     @PutMapping
     @AuthRequired(admin = true)
-    public Result<?> update(@RequestBody User user) { userService.updateById(user); return Result.success(); }
+    public Result<?> update(@RequestBody User user) {
+        // 2026-11-21 修复：与 PUT /{id} 对齐，非 BCrypt 明文密码先加密再落库（此前明文直存）
+        if (StringUtils.hasText(user.getPassword()) && !user.getPassword().startsWith("$2")) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        } else if (!StringUtils.hasText(user.getPassword())) {
+            user.setPassword(null); // 空密码不覆盖，避免清空原密码
+        }
+        userService.updateById(user);
+        return Result.success();
+    }
 
     // 按 id 更新用户（供后台用户管理使用）
     @PutMapping("/{id}")

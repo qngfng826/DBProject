@@ -9,8 +9,10 @@ import org.springframework.http.MediaType;
 
 import java.util.Date;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -134,5 +136,46 @@ class AuthChainTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.msg").value("用户名或密码错误"));
+    }
+
+    @Test
+    @DisplayName("匿名写电影 → 401（安全层拦截，此前 permitAll path-only 会放行到拦截器）")
+    void anonymousMovieWriteReturns401() throws Exception {
+        mockMvc.perform(post("/api/movie")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"x\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401));
+    }
+
+    @Test
+    @DisplayName("匿名删演员 → 401（安全层拦截）")
+    void anonymousActorDeleteReturns401() throws Exception {
+        mockMvc.perform(delete("/api/actor/1"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401));
+    }
+
+    @Test
+    @DisplayName("匿名查我的评论 → HTTP 401（此前 permitAll 误配返回 200+body 401）")
+    void anonymousMyCommentsReturns401() throws Exception {
+        mockMvc.perform(get("/api/comment/user"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401));
+    }
+
+    @Test
+    @DisplayName("管理员 PUT /api/user 重置密码后落库为 BCrypt 哈希（修复明文直存）")
+    void adminUserUpdateStoresBcryptPassword() throws Exception {
+        mockMvc.perform(put("/api/user")
+                        .header("Authorization", bearer(token(adminId, "admin", "admin")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":" + userId + ",\"password\":\"newpass123456\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        String stored = jdbcTemplate.queryForObject(
+                "SELECT Password FROM user1707 WHERE UserId = ?", String.class, userId);
+        org.junit.jupiter.api.Assertions.assertTrue(stored.startsWith("$2a$"), "密码应为 BCrypt 哈希: " + stored);
     }
 }

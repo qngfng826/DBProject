@@ -4,6 +4,7 @@ import movie_rating_backend.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -35,12 +36,13 @@ public class SecurityConfig {
             .and()
             .authorizeHttpRequests(authz -> authz
                 .antMatchers("/api/login", "/api/register").permitAll()
-                .antMatchers("/api/movie/**").permitAll()
-                .antMatchers("/api/actor/**").permitAll()
-                .antMatchers("/api/director/**").permitAll()
-                .antMatchers("/api/comment/movie/**", "/api/comment/user/**").permitAll()
-                .antMatchers("/api/rating/movie/**", "/api/rating/movie/{id:\\d+}/average", "/api/rating/user").permitAll()
-                .antMatchers("/api/report/**").permitAll()
+                // 2026-11-21 收紧：permitAll 一律限定 HttpMethod.GET——
+                // 此前 path-only 通配把 POST/PUT/DELETE 也匿名放行，写操作仅剩拦截器单层防护；
+                // 现在全部写操作与用户私有读接口落入 authenticated()，与拦截器 @AuthRequired 构成双层防护
+                .antMatchers(HttpMethod.GET, "/api/movie/**", "/api/actor/**", "/api/director/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/comment/movie/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/report/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/rating/movie/{id:\\d+}/average").permitAll()
                 .anyRequest().authenticated()
             )
             // 把 JWT 解析接入安全过滤链，认证信息需在授权检查之前设置好

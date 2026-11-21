@@ -24,8 +24,8 @@ const routes = [
       { path: 'actor/:id', component: () => import('@/views/ActorDetail.vue') },
       { path: 'directors', component: () => import('@/views/DirectorList.vue') },
       { path: 'director/:id', component: () => import('@/views/DirectorDetail.vue') },
-      { path: 'my-rating', component: () => import('@/views/MyRating.vue') },
-      { path: 'my-comment', component: () => import('@/views/MyComment.vue') },
+      { path: 'my-rating', component: () => import('@/views/MyRating.vue'), meta: { requiresAuth: true } },
+      { path: 'my-comment', component: () => import('@/views/MyComment.vue'), meta: { requiresAuth: true } },
       { path: 'report', component: () => import('@/views/Report.vue') }
     ],
     meta: { public: true }
@@ -53,6 +53,9 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   // 优化守卫逻辑：先检查公共路由
   if (to.meta.public) return next()
+  // 需要登录的用户页（我的评分/我的评论）：2026-11-21 修复——此前 Layout 父级
+  // 的 public:true 被子路由继承，守卫被短路导致匿名可进
+  if (to.meta.requiresAuth && !userStore.token) return next('/login')
   // 检查登录状态
   if (!userStore.token) return next('/login')
   // 检查管理员权限
