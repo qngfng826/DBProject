@@ -1,0 +1,47 @@
+/* 用户端列表页（MovieList / ActorList / DirectorList）共享的分页样式。
+   由 Layout.vue 引入一次；作用域用根元素上的 .list-page 类限定，
+   不影响管理端（admin-theme.css 有自己的 .admin-page .pagination-wrapper 规则）。
+   注意：全局（非 scoped）CSS，选择器不能使用 :deep()，直接写后代选择器。 */
+
+.list-page .pagination-wrapper {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
+.list-page .pagination-wrapper .el-pagination .el-pager li {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+/* 2. 鼠标悬停：显示主题色边框 */
+.list-page .pagination-wrapper .el-pagination .el-pager li:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 3. 当前页（激活状态）：最明显的颜色 */
+.list-page .pagination-wrapper .el-pagination .el-pager li.is-active {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  font-weight: bold;
+  border-color: var(--accent);
+  cursor: default;
+}
+
+/* 4. 上一页/下一页按钮样式 */
+.list-page .pagination-wrapper .el-pagination button {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.list-page .pagination-wrapper .el-pagination button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}

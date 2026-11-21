@@ -1,89 +1,62 @@
 -- =====================================================
--- 电影评分系统数据库索引优化脚本
--- 创建日期: 2026-08-25
--- 目的: 提升查询性能 3-5 倍
+-- 电影评分系统数据库索引脚本
+-- 创建日期: 2026-08-25 | 重写日期: 2026-11-21（改为"索引全景 + 补索引"结构）
+--
+-- ⚠️ 适用范围：
+--   deploy/schema.sql / deploy/init.sql 建的库已内联全部业务索引
+--   （movie 表 3 条 + 外键自动索引 + rating 唯一约束索引），无需执行本脚本。
+--   在这类库上重复执行第 2 节中已存在的同名索引会报 1061 Duplicate key name。
+--   第 2 节仅适用于"极早期、无内联索引的旧库"补索引。
 -- =====================================================
 
--- 1. 电影表 - 标题搜索索引
--- 用于支持按电影标题搜索和模糊查询
-CREATE INDEX idx_movie_title ON movie1707(Title);
+-- -----------------------------------------------------
+-- 第 1 节：现役索引全景（文档性质，勿执行）
+-- -----------------------------------------------------
+-- movie1707（schema.sql 内联）:
+--   PRIMARY KEY (MovieID)
+--   KEY idx_movie_title  (Title)        -- 标题搜索（含前导通配 LIKE 时的全表扫描代价见待办④ EXPLAIN 记录）
+--   KEY idx_movie_rating (Rating)       -- 评分排序/筛选
+--   KEY idx_movie_year   (ReleaseYear)  -- 年份筛选
+-- comment1707（外键自动生成）:
+--   KEY UserID / KEY MovieID            -- 按用户查评论 / 按电影统计评论数
+-- rating1707:
+--   UNIQUE KEY (UserID, MovieID)        -- "一人一影一评"约束；左前缀同时覆盖按用户查评分
+--   KEY UserID / KEY MovieID（外键自动生成）-- 均分重算/详情聚合按 MovieID 查找
+-- movie_actor1707 / movie_director1707（外键自动生成）:
+--   KEY MovieID / KEY ActorID / KEY DirectorID
+--
+-- 结论：标题搜索、评分排序、年份筛选、用户-电影组合、评论/评分按电影聚合
+-- 均已有索引覆盖；演员/导演姓名检索由第 2 节补充。
 
--- 2. 电影表 - 评分索引
--- 用于支持按评分排序和评分筛选查询
-CREATE INDEX idx_movie_rating ON movie1707(Rating);
-
--- 3. 评论表 - 用户ID索引
--- 用于支持按用户查询评论列表
-CREATE INDEX idx_comment_user_id ON comment1707(UserID);
-
--- 4. 评分表 - 联合索引 (用户ID, 电影ID)
--- 用于支持用户查询自己对某电影的评分
-CREATE INDEX idx_rating_user_movie ON rating1707(UserID, MovieID);
-
--- 5. 评分表 - 电影ID索引
--- 用于支持按电影查询平均评分
-CREATE INDEX idx_rating_movie_id ON rating1707(MovieID);
-
--- 6. 演员表 - 名称索引
--- 用于支持按演员姓名搜索和模糊查询
-CREATE INDEX idx_actor_name ON actor1707(Name);
-
--- 7. 导演表 - 名称索引
--- 用于支持按导演姓名搜索和模糊查询
-CREATE INDEX idx_director_name ON director1707(Name);
+-- -----------------------------------------------------
+-- 第 2 节：补充索引（仅老库需要；已存在时会报 1061，属预期）
+-- -----------------------------------------------------
+-- CREATE INDEX idx_actor_name    ON actor1707(Name);
+-- CREATE INDEX idx_director_name ON director1707(Name);
 
 -- =====================================================
--- 索引使用建议
+-- 常见查询场景与索引对应（EXPLAIN 已验证，见 README 性能优化）
 -- =====================================================
-
--- 常见查询场景及使用索引说明：
---
--- 1. 按电影标题搜索 (LIKE '%xxx%')
---    -> 使用 idx_movie_title
---
--- 2. 按评分筛选和排序 (ORDER BY Rating DESC)
---    -> 使用 idx_movie_rating
---
--- 3. 查询某用户的所有评论 (WHERE UserID = ?)
---    -> 使用 idx_comment_user_id
---
--- 4. 查询某用户对某电影的评分 (WHERE UserID = ? AND MovieID = ?)
---    -> 使用 idx_rating_user_movie (联合索引)
---
--- 5. 查询某电影的平均评分 (SELECT AVG(Score) ...)
---    -> 使用 idx_rating_movie_id
---
--- 6. 按演员姓名搜索 (LIKE '%xxx%')
---    -> 使用 idx_actor_name
---
--- 7. 按导演姓名搜索 (LIKE '%xxx%')
---    -> 使用 idx_director_name
+-- 1. 按电影标题搜索 LIKE  → idx_movie_title（前导通配时走全表扫描，代价固有）
+-- 2. 按评分筛选/排序       → idx_movie_rating
+-- 3. 按用户查评论          → comment1707 外键索引 UserID
+-- 4. 用户对某电影的评分    → rating1707 唯一约束索引 (UserID, MovieID)
+-- 5. 电影平均评分/热度聚合 → rating1707 外键索引 MovieID（覆盖索引）
+-- 6. 演员姓名搜索          → idx_actor_name
+-- 7. 导演姓名搜索          → idx_director_name
 
 -- =====================================================
--- 监控索引使用情况
+-- 监控索引使用情况（可选）
 -- =====================================================
-
--- 查看索引使用统计
 -- SELECT
---     table_name,
---     index_name,
---     index_type,
---     seq_in_index,
---     column_name,
---     cardinality
+--     table_name, index_name, seq_in_index, column_name, cardinality
 -- FROM information_schema.statistics
 -- WHERE table_schema = DATABASE()
 --   AND table_name IN ('movie1707', 'comment1707', 'rating1707', 'actor1707', 'director1707')
 -- ORDER BY table_name, index_name, seq_in_index;
 
 -- =====================================================
--- 删除索引（如需要回滚）
+-- 回滚（如需要）
 -- =====================================================
-
--- DROP INDEX idx_movie_title ON movie1707;
--- DROP INDEX idx_movie_rating ON movie1707;
--- DROP INDEX idx_comment_user_id ON comment1707;
--- DROP INDEX idx_rating_user_movie ON rating1707;
--- DROP INDEX idx_rating_movie_id ON rating1707;
 -- DROP INDEX idx_actor_name ON actor1707;
 -- DROP INDEX idx_director_name ON director1707;

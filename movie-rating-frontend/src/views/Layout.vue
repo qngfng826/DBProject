@@ -65,6 +65,7 @@ import { Film, ArrowDown, Star, ChatDotRound, SwitchButton } from '@element-plus
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import '@/assets/list-pagination.css'
 
 const userStore = useUserStore()
 const router = useRouter()

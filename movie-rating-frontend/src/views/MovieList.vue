@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container list-page">
     <div class="section-title">电影列表</div>
 
     <!-- 筛选栏 -->
@@ -216,48 +216,5 @@ onMounted(() => {
 .movie-info { padding: 12px 4px; }
 .movie-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .movie-meta { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-.pagination-wrapper {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-}
-/* --- 分页组件样式增强 --- */
-
-/* 1. 普通页码：增加边框，使用次要背景色，使其从卡片背景中凸显 */
-.pagination-wrapper :deep(.el-pagination .el-pager li) {
-  background-color: var(--bg-secondary); /* 使用次级背景色 */
-  color: var(--text-primary);
-  border: 1px solid var(--border-color); /* 添加边框 */
-  font-weight: 500;
-  border-radius: 4px; /* 圆角 */
-}
-
-/* 2. 鼠标悬停：显示主题色边框 */
-.pagination-wrapper :deep(.el-pagination .el-pager li:hover) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* 3. 当前页（激活状态）：最明显的颜色 */
-.pagination-wrapper :deep(.el-pagination .el-pager li.is-active) {
-  background-color: var(--accent) !important; /* 强制背景为主题色 */
-  color: #fff !important; /* 文字改为白色，对比度高 */
-  font-weight: bold; /* 加粗 */
-  border-color: var(--accent);
-  cursor: default;
-}
-
-/* 4. 上一页/下一页按钮样式 */
-.pagination-wrapper :deep(.el-pagination button) {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-}
-
-.pagination-wrapper :deep(.el-pagination button:hover) {
-  color: var(--accent);
-  border-color: var(--accent);
-}
 
 </style>

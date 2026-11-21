@@ -46,11 +46,6 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, Movie> implements
     private CacheInvalidator cacheInvalidator;
 
     @Override
-    public Movie selectOneById(Integer id) {
-        return movieMapper.selectOneById(id, null);
-    }
-
-    @Override
     public Movie selectOneById(Integer id, Integer userId) {
         return movieMapper.selectOneById(id, userId);
     }

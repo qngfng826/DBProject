@@ -69,8 +69,8 @@ flowchart LR
 
 - **8 张表**：`user1707` / `movie1707` / `actor1707` / `director1707` / `comment1707` / `rating1707` / `movie_actor1707`（含角色名）/ `movie_director1707`
 - **约束**：`rating1707` 的 `(UserID, MovieID)` 唯一（一人一影一评）、`Score` CHECK 1–10、外键约束
-- **视图 `v_hot_movies`**：热度公式 `Rating * LOG(CommentCount + 1)`，供首页热度榜
-- **索引优化**：7 条索引覆盖标题搜索、评分排序、用户-电影组合查询，见 [DatabaseIndexes.sql](DatabaseIndexes.sql)
+- **视图 `v_hot_movies`**：热度公式 `Rating * LOG(CommentCount + 1)`，作为课设演示保留；后端热度榜实际由聚合 SQL 直接计算（`MovieMapper.getHotMovies`），未使用该视图
+- **索引体系**：schema.sql 内联索引（标题/评分/年份）+ 外键自动索引 + 唯一约束覆盖"用户-电影"组合查询；演员/导演姓名检索由 [DatabaseIndexes.sql](DatabaseIndexes.sql) 补充（含现役索引全景说明）
 - **触发器 / 存储过程**：课程设计原方案在本地 MySQL 使用触发器重算电影均分与 2 个查询存储过程；生产 TiDB 不支持这些特性，已等效迁移为服务层逻辑（`RatingServiceImpl` 重算）与普通 SQL。仓库中的建库脚本为 TiDB 兼容版本，不含触发器定义
 - **建库脚本**：[deploy/schema.sql](deploy/schema.sql)（纯结构） / [deploy/init.sql](deploy/init.sql)（结构 + 种子数据） / `deploy/csv/`（TiDB 控制台导入素材）
 
@@ -84,7 +84,7 @@ flowchart LR
 # 方式一：仅建表结构
 mysql -u root -p < deploy/schema.sql
 
-# 方式二：建表 + 示例数据（17 部电影、29 位演员、12 位导演等）
+# 方式二：建表 + 示例数据（14 部电影、29 位演员、12 位导演等）
 mysql -u root -p < deploy/init.sql
 ```
 
@@ -160,10 +160,10 @@ docker compose up -d --build
 
 ## 性能优化
 
-- 7 条索引 + `EXPLAIN` 验证（[DatabaseIndexes.sql](DatabaseIndexes.sql)）
+- 索引体系覆盖热点查询 + `EXPLAIN` 验证（[DatabaseIndexes.sql](DatabaseIndexes.sql)，含现役索引全景）
 - 列表接口全部分页，避免全表扫描
 - 前端 GET 请求 5 分钟内存缓存，写操作自动失效
-- 热度榜由数据库视图计算，避免应用层全量遍历
+- 热度榜由聚合 SQL 直接计算并 `LIMIT 10`，避免应用层全量遍历
 - 可选 Redis 热点缓存（热门榜 / 详情 / 列表 / 搜索 / 报表），Redis 不可用时自动熔断直查数据库
 
 ### 压测结果

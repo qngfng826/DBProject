@@ -10,7 +10,7 @@
       <!-- 导航菜单 -->
       <el-menu
         router
-        default-active="/admin/movie"
+        :default-active="$route.path"
         style="border-right: none; background: transparent;"
         text-color="#fff"
         active-text-color="#409EFF"

@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface MovieService extends IService<Movie> {
-    Movie selectOneById(Integer id);
-
     /**
      * 根据电影ID获取电影详情（支持用户评分过滤）
      * @param id 电影ID
