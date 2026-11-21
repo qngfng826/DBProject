@@ -256,7 +256,7 @@ DatabaseProject/
 
 ## TODO 路线图
 
-- [x] 单元 / 集成测试（鉴权链 + 核心 CRUD + 缓存，42 例）
+- [x] 单元 / 集成测试（鉴权链 + 核心 CRUD + 缓存，43 例）
 - [x] GitHub Actions CI（后端构建 + 前端构建）
 - [x] JMeter 压测数据回填（TPS / P95 / 错误率）
 - [x] Redis 热点缓存（可选，默认关闭）
