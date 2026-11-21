@@ -3,7 +3,7 @@
 # 说明：
 #   - MySQL 容器映射到宿主机 3307，与本机正在运行的 MySQL96(3306) / MySQL84(3305) 互不干扰
 #   - 数据库初始化：首次启动自动执行 deploy/init.sql（8 表 + 种子数据 + 视图）
-#   - 前端 Nginx 把 /api 反代到 backend 容器，浏览器只需访问 http://localhost:8080
+#   - 前端 Nginx 把 /api 反代到 backend 容器，浏览器只需访问 http://localhost:5173
 services:
   mysql:
     image: mysql:8.4
@@ -80,7 +80,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "8080:80"
+      - "5173:80"
     restart: unless-stopped
 
 volumes:

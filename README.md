@@ -124,12 +124,12 @@ cp .env.example .env        # 填入 MYSQL_ROOT_PASSWORD / JWT_SECRET（.env 不
 docker compose up -d --build
 ```
 
-- 访问入口：**http://localhost:8080**（Nginx 托管前端静态文件，`/api` 反代到后端容器）
+- 访问入口：**http://localhost:5173**（Nginx 托管前端静态文件，`/api` 反代到后端容器；与 Vite dev server 同端口，二者不要同时启动）
 - 服务与端口：
 
 | 服务 | 镜像 | 宿主机端口 | 说明 |
 |---|---|---|---|
-| frontend | node:20 构建产物 + nginx:alpine | **8080** | 访问入口 |
+| frontend | node:20 构建产物 + nginx:alpine | **5173** | 访问入口 |
 | backend | 多阶段 Maven 构建 → eclipse-temurin:11-jre | 8088 | /api 直连调试用 |
 | mysql | mysql:8.4 LTS | **3307** | 避开本机 MySQL96(3306)；首次启动自动导入 `deploy/init.sql` |
 | redis | valkey/valkey:8-alpine | 6379 | 热点缓存（`CACHE_ENABLED=true`） |

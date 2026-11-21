@@ -163,12 +163,12 @@ cd DatabaseProject
 cp .env.example .env      # 填 MYSQL_ROOT_PASSWORD / JWT_SECRET（.env 不入库）
 docker compose up -d --build
 
-# 3. 访问 http://localhost:8080（Nginx 入口，/api 自动反代后端）
+# 3. 访问 http://localhost:5173（Nginx 入口，/api 自动反代后端）
 ```
 
 | 服务 | 镜像 | 宿主机端口 | 说明 |
 |---|---|---|---|
-| frontend | node:20 构建产物 + nginx:alpine | **8080** | 访问入口，SPA 路由回退 |
+| frontend | node:20 构建产物 + nginx:alpine | **5173** | 访问入口，SPA 路由回退 |
 | backend | 多阶段 Maven 构建 → eclipse-temurin:11-jre | 8088 | `/api` 直连调试 |
 | mysql | **mysql:8.4 LTS** | **3307** | 首次启动自动执行 `deploy/init.sql`（8 表 + 种子 + 视图）；不碰本机 MySQL96(3306) / MySQL84(3305) |
 | redis | valkey/valkey:8-alpine | 6379 | 热点缓存（`.env` 里 `CACHE_ENABLED`，默认 true） |
